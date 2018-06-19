@@ -1,20 +1,16 @@
 package main
-import (
-	"fmt"
-	"net/http"
-	"log"
 
-	"gopkg.in/mgo.v2"
+import (
+	"log"
+	"net/http"
+
+	"github.com/kat6123/tournament/routes"
 )
 
 func main() {
-	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Welcome to my website!")
-	})
+	routes.Set()
 
-	fs := http.FileServer(http.Dir("static/"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	if err := http.ListenAndServe(":8080", routes.Router); err != nil {
+		log.Fatal(err)
+	}
 }
-
