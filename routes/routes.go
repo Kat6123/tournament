@@ -21,7 +21,8 @@ func Set() {
 		Queries("tournamentId", "").
 		Subrouter()
 	t.HandleFunc("/announceTournament", handlers.AnnounceTournament).
-		Queries("deposit", "")
+		Queries("deposit", "").
+		Methods("PATCH")
 	t.HandleFunc("/joinTournament", handlers.JoinTournament).
 		Queries("playerId", "")
 	t.HandleFunc("/resultTournament", handlers.ResultTournament).
