@@ -10,14 +10,24 @@ var Router = mux.NewRouter()
 
 // Set sets endpoint handlers and restrict some paths with query values.
 func Set() {
-	p := Router.Queries("playerId", "", "points", "").Subrouter()
+	p := Router.
+		Queries("playerId", "", "points", "").
+		Methods("PATCH").
+		Subrouter()
 	p.HandleFunc("/take", handlers.Take)
 	p.HandleFunc("/fund", handlers.Fund)
 
-	t := Router.Queries("tournamentId", "").Subrouter()
-	t.HandleFunc("/announceTournament", handlers.AnnounceTournament).Queries("deposit", "")
-	t.HandleFunc("/joinTournament", handlers.JoinTournament).Queries("playerId", "")
-	t.HandleFunc("/resultTournament", handlers.ResultTournament)
+	t := Router.
+		Queries("tournamentId", "").
+		Subrouter()
+	t.HandleFunc("/announceTournament", handlers.AnnounceTournament).
+		Queries("deposit", "")
+	t.HandleFunc("/joinTournament", handlers.JoinTournament).
+		Queries("playerId", "")
+	t.HandleFunc("/resultTournament", handlers.ResultTournament).
+		Methods("GET")
 
-	Router.HandleFunc("/balance", handlers.Balance).Queries("playerId", "")
+	Router.HandleFunc("/balance", handlers.Balance).
+		Queries("playerId", "").
+		Methods("GET")
 }
