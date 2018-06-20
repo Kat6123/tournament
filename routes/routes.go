@@ -25,6 +25,8 @@ func Set() {
 		Methods("PATCH")
 	t.HandleFunc("/joinTournament", handlers.JoinTournament).
 		Queries("playerId", "")
+	t.HandleFunc("/endTournament", handlers.EndTournament).
+		Methods("PATCH")
 	t.HandleFunc("/resultTournament", handlers.ResultTournament).
 		Methods("GET")
 
