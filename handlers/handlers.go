@@ -2,12 +2,14 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
+
+	"fmt"
 	"strconv"
 
 	"encoding/json"
 
+	"github.com/globalsign/mgo"
 	"github.com/kat6123/tournament/logic"
 )
 
@@ -22,8 +24,17 @@ func Take(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player := logic.GetPlayer(playerId)
-	player.Take(points)
+	if err := logic.Take(playerId, points); err != nil {
+		status := http.StatusInternalServerError
+
+		// Bad dependency
+		if err == mgo.ErrNotFound {
+			status = http.StatusNotFound
+		}
+		errStr := fmt.Sprintf("take points has failed: %v", err)
+		http.Error(w, errStr, status)
+		return
+	}
 }
 
 func Fund(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +48,17 @@ func Fund(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player := logic.GetPlayer(playerId)
-	player.Fund(points)
+	if err := logic.Fund(playerId, points); err != nil {
+		status := http.StatusInternalServerError
+
+		// Bad dependency
+		if err == mgo.ErrNotFound {
+			status = http.StatusNotFound
+		}
+		errStr := fmt.Sprintf("fund points has failed: %v", err)
+		http.Error(w, errStr, status)
+		return
+	}
 }
 
 func AnnounceTournament(w http.ResponseWriter, r *http.Request) {
@@ -52,9 +72,18 @@ func AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tour := logic.GetTournament(tournamentId)
-	fmt.Fprintf(w, "%s", tour)
-	tour.SetDeposit(deposit)
+	if err := logic.AnnounceTournament(tournamentId, deposit); err != nil {
+		status := http.StatusInternalServerError
+
+		// Bad dependency
+		if mgo.IsDup(err) {
+			status = http.StatusBadRequest
+		}
+		errStr := fmt.Sprintf("announce tournament has failed: %v", err)
+		http.Error(w, errStr, status)
+		return
+	}
+
 }
 
 func JoinTournament(w http.ResponseWriter, r *http.Request) {
@@ -68,9 +97,38 @@ func JoinTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tournament := logic.GetTournament(tournamentId)
-	player := logic.GetPlayer(playerId)
-	tournament.Join(player)
+	if err := logic.JoinTournament(tournamentId, playerId); err != nil {
+		status := http.StatusInternalServerError
+
+		// Bad dependency
+		if err == mgo.ErrNotFound {
+			status = http.StatusNotFound
+		}
+		errStr := fmt.Sprintf("join to tournament id %d of player id %d has failed: %v",
+			tournamentId, playerId, err)
+		http.Error(w, errStr, status)
+		return
+	}
+}
+
+func EndTournament(w http.ResponseWriter, r *http.Request) {
+	tournamentId, err := getIntQueryParam("tournamentId", w, r)
+	if err != nil {
+		return
+	}
+
+	if err := logic.EndTournament(tournamentId); err != nil {
+		status := http.StatusInternalServerError
+
+		// Bad dependency
+		if err == mgo.ErrNotFound {
+			status = http.StatusNotFound
+		}
+		errStr := fmt.Sprintf("end tournament id %d has failed: %v",
+			tournamentId, err)
+		http.Error(w, errStr, status)
+		return
+	}
 }
 
 func ResultTournament(w http.ResponseWriter, r *http.Request) {
@@ -79,10 +137,23 @@ func ResultTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tournament := logic.GetTournament(tournamentId)
-	b, err := json.Marshal(tournament.Winners)
+	winner, err := logic.ResultTournament(tournamentId)
 	if err != nil {
-		errStr := fmt.Sprintf("encode winners %s as json has failed: %v", tournament.Winners, err)
+		status := http.StatusInternalServerError
+
+		// Bad dependency
+		if err == mgo.ErrNotFound {
+			status = http.StatusNotFound
+		}
+		errStr := fmt.Sprintf("get result of tournament id %d has failed: %v",
+			tournamentId, err)
+		http.Error(w, errStr, status)
+		return
+	}
+
+	b, err := json.Marshal(winner)
+	if err != nil {
+		errStr := fmt.Sprintf("encode winners %s as json has failed: %v", winner, err)
 		http.Error(w, errStr, http.StatusInternalServerError)
 		return
 	}
@@ -97,7 +168,20 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player := logic.GetPlayer(playerId)
+	// Better to call db.LoadPlayer in logic.Balance?
+	player, err := logic.Balance(playerId)
+	if err != nil {
+		status := http.StatusInternalServerError
+
+		// Bad dependency
+		if err == mgo.ErrNotFound {
+			status = http.StatusNotFound
+		}
+		errStr := fmt.Sprintf("load balance has failed: %v", err)
+		http.Error(w, errStr, status)
+		return
+	}
+
 	b, err := json.Marshal(player)
 	if err != nil {
 		errStr := fmt.Sprintf("encode player %s as json has failed: %v", player, err)
