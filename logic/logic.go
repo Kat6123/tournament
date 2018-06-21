@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/kat6123/tournament/db"
-	"github.com/kat6123/tournament/models"
+	"github.com/kat6123/tournament/model"
 )
 
 func Take(playerId int, points float32) error {
@@ -37,7 +37,7 @@ func Fund(playerId int, points float32) error {
 }
 
 func AnnounceTournament(tourId int, deposit float32) error {
-	tour := &models.Tournament{
+	tour := &model.Tournament{
 		ID:      tourId,
 		Deposit: deposit,
 	}
@@ -66,11 +66,11 @@ func JoinTournament(tourId, playerId int) error {
 	return nil
 }
 
-func Balance(playerId int) (*models.Player, error) {
+func Balance(playerId int) (*model.Player, error) {
 	return db.LoadPlayer(playerId)
 }
 
-func ResultTournament(tourId int) (*models.Winner, error) {
+func ResultTournament(tourId int) (*model.Winner, error) {
 	tour, err := db.LoadTournament(tourId)
 	if err != nil {
 		return nil, err

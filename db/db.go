@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/globalsign/mgo"
-	"github.com/kat6123/tournament/models"
+	"github.com/kat6123/tournament/model"
 )
 
 var session *mgo.Session
@@ -21,12 +21,12 @@ func Close() {
 	session.Close()
 }
 
-func LoadPlayer(playerId int) (*models.Player, error) {
+func LoadPlayer(playerId int) (*model.Player, error) {
 	s := session.Copy()
 	defer s.Close()
 
 	c := session.DB("tournament").C("players")
-	var p models.Player
+	var p model.Player
 
 	err := c.FindId(playerId).One(&p)
 	if err != nil {
@@ -36,7 +36,7 @@ func LoadPlayer(playerId int) (*models.Player, error) {
 	return &p, nil
 }
 
-func SavePlayer(p *models.Player) error {
+func SavePlayer(p *model.Player) error {
 	s := session.Copy()
 	defer s.Close()
 
@@ -47,12 +47,12 @@ func SavePlayer(p *models.Player) error {
 	return nil
 }
 
-func LoadTournament(tourId int) (*models.Tournament, error) {
+func LoadTournament(tourId int) (*model.Tournament, error) {
 	s := session.Copy()
 	defer s.Close()
 
 	c := session.DB("tournament").C("tours")
-	var t models.Tournament
+	var t model.Tournament
 
 	err := c.FindId(tourId).One(&t)
 	if err != nil {
@@ -62,7 +62,7 @@ func LoadTournament(tourId int) (*models.Tournament, error) {
 	return &t, nil
 }
 
-func SaveTournament(t *models.Tournament) error {
+func SaveTournament(t *model.Tournament) error {
 	s := session.Copy()
 	defer s.Close()
 
@@ -73,7 +73,7 @@ func SaveTournament(t *models.Tournament) error {
 	return nil
 }
 
-func CreateTournament(t *models.Tournament) error {
+func CreateTournament(t *model.Tournament) error {
 	s := session.Copy()
 	defer s.Close()
 

@@ -5,16 +5,13 @@ import (
 	"net/http"
 
 	"github.com/kat6123/tournament/db"
-	"github.com/kat6123/tournament/routes"
+	"github.com/kat6123/tournament/route"
 )
 
 func main() {
 	db.Connect()
 	defer db.Close()
 
-	routes.Set()
-
-	if err := http.ListenAndServe(":8080", routes.Router); err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(
+		http.ListenAndServe(":8080", route.Serve()))
 }
