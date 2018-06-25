@@ -58,6 +58,7 @@ func (m *mgoSession) SavePlayer(p *model.Player) error {
 	if err := c.UpdateId(p.ID, &p); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -84,6 +85,7 @@ func (m *mgoSession) SaveTournament(t *model.Tournament) error {
 	if err := c.UpdateId(t.ID, &t); err != nil {
 		return err
 	}
+
 	return nil
 }
 

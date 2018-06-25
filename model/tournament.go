@@ -54,5 +54,6 @@ func (t *Tournament) playerInTour(id int) bool {
 			return true
 		}
 	}
+
 	return false
 }

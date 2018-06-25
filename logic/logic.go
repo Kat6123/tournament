@@ -31,6 +31,7 @@ func Take(playerID int, points float32) error {
 	if err := db.SavePlayer(player); err != nil {
 		return fmt.Errorf("save player %d in db: %v", playerID, err)
 	}
+
 	return nil
 }
 
@@ -45,6 +46,7 @@ func Fund(playerID int, points float32) error {
 	if err := db.SavePlayer(player); err != nil {
 		return fmt.Errorf("save player %d in db: %v", playerID, err)
 	}
+
 	return nil
 }
 
@@ -57,6 +59,7 @@ func AnnounceTournament(tourID int, deposit float32) error {
 	if err := db.CreateTournament(tour); err != nil {
 		return fmt.Errorf("insert tour %d in db: %v", tourID, err)
 	}
+
 	return nil
 }
 
