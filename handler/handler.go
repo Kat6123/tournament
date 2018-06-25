@@ -13,7 +13,7 @@ import (
 )
 
 func jsonError(w http.ResponseWriter, message string, code int) {
-	error := struct {
+	err := struct {
 		message string
 	}{
 		message: message,
@@ -22,7 +22,7 @@ func jsonError(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	// What if error when encode 'error' ?
-	json.NewEncoder(w).Encode(error)
+	json.NewEncoder(w).Encode(err)
 }
 
 func jsonResponse(w http.ResponseWriter, v interface{}) {
@@ -175,8 +175,7 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Better to call db.LoadPlayer in logic.Balance?
-	player, err := logic.Balance(playerID)
+	b, err := logic.Balance(playerID)
 	if err != nil {
 		status := http.StatusInternalServerError
 
@@ -188,7 +187,14 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonResponse(w, player)
+	balance := struct {
+		PlayerId int     `json:"playerId"`
+		Balance  float32 `json:"balance"`
+	}{
+		PlayerId: playerID,
+		Balance:  b,
+	}
+	jsonResponse(w, balance)
 }
 
 func getIntQueryParam(param string, w http.ResponseWriter, r *http.Request) (int, error) {

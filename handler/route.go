@@ -14,9 +14,9 @@ const (
 
 // Serve sets endpoint handler and restrict some paths with query values.
 func ServeRoutes() *mux.Router {
-	router := mux.NewRouter()
+	r := mux.NewRouter()
 
-	p := router.
+	p := r.
 		Queries("playerID", "{id:"+intRegex+"}",
 			"points", "{points:"+floatRegex+"}").
 		Methods(http.MethodPut).
@@ -24,7 +24,7 @@ func ServeRoutes() *mux.Router {
 	p.HandleFunc("/take", Take)
 	p.HandleFunc("/fund", Fund)
 
-	t := router.
+	t := r.
 		Queries("tournamentID", "{id:"+intRegex+"}").
 		Subrouter()
 	t.HandleFunc("/announceTournament", AnnounceTournament).
@@ -38,9 +38,9 @@ func ServeRoutes() *mux.Router {
 	t.HandleFunc("/resultTournament", ResultTournament).
 		Methods(http.MethodGet)
 
-	router.HandleFunc("/balance", Balance).
+	r.HandleFunc("/balance", Balance).
 		Queries("playerID", "{id:"+intRegex+"}").
 		Methods(http.MethodGet)
 
-	return router
+	return r
 }
