@@ -20,5 +20,7 @@ func main() {
 	}
 	defer repository.Close()
 
-	log.Fatal(http.ListenAndServe(":8080", handler.ServeRoutes()))
+	logic.Init(logic.Builder{R: repository})
+
+	log.Fatal(http.ListenAndServe(":3001", handler.ServeRoutes()))
 }

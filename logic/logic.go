@@ -4,85 +4,104 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/kat6123/tournament/db"
+	"fmt"
+
+	"github.com/kat6123/tournament/api"
 	"github.com/kat6123/tournament/model"
 )
 
-func Take(playerId int, points float32) error {
-	player, err := db.LoadPlayer(playerId)
+var db api.Repository
+
+type Builder struct {
+	R api.Repository
+}
+
+func Init(b Builder) {
+	db = b.R
+}
+
+func Take(playerID int, points float32) error {
+	player, err := db.LoadPlayer(playerID)
 	if err != nil {
-		return err
+		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
 	}
 
 	player.Take(points)
 
 	if err := db.SavePlayer(player); err != nil {
-		return err
+		return fmt.Errorf("save player %d in db: %v", playerID, err)
 	}
 	return nil
 }
 
-func Fund(playerId int, points float32) error {
-	player, err := db.LoadPlayer(playerId)
+func Fund(playerID int, points float32) error {
+	player, err := db.LoadPlayer(playerID)
 	if err != nil {
-		return err
+		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
 	}
 
 	player.Fund(points)
 
 	if err := db.SavePlayer(player); err != nil {
-		return err
+		return fmt.Errorf("save player %d in db: %v", playerID, err)
 	}
 	return nil
 }
 
-func AnnounceTournament(tourId int, deposit float32) error {
+func AnnounceTournament(tourID int, deposit float32) error {
 	tour := &model.Tournament{
-		ID:      tourId,
+		ID:      tourID,
 		Deposit: deposit,
 	}
 
-	err := db.CreateTournament(tour)
-	return err
+	if err := db.CreateTournament(tour); err != nil {
+		return fmt.Errorf("insert tour %d in db: %v", tourID, err)
+	}
+	return nil
 }
 
-func JoinTournament(tourId, playerId int) error {
-	tour, err := db.LoadTournament(tourId)
+func JoinTournament(tourID, playerID int) error {
+	tour, err := db.LoadTournament(tourID)
 	if err != nil {
-		return err
+		return fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
 	}
 
-	player, err := db.LoadPlayer(playerId)
+	player, err := db.LoadPlayer(playerID)
 	if err != nil {
-		return err
+		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
 	}
 
 	tour.Join(player)
 
 	if err := db.SaveTournament(tour); err != nil {
-		return err
+		return fmt.Errorf("save tour %d in db: %v", tourID, err)
 	}
 
 	return nil
 }
 
-func Balance(playerId int) (*model.Player, error) {
-	return db.LoadPlayer(playerId)
+func Balance(playerID int) (float32, error) {
+	player, err := db.LoadPlayer(playerID)
+	if err != nil {
+		return 0, fmt.Errorf("load player with id %d from db: %v", playerID, err)
+	}
+
+	return player.Balance, nil
 }
 
-func ResultTournament(tourId int) (*model.Winner, error) {
-	tour, err := db.LoadTournament(tourId)
+func ResultTournament(tourID int) (*model.Winner, error) {
+	tour, err := db.LoadTournament(tourID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
 	}
 
 	return &tour.Winner, nil
 }
 
-func EndTournament(tourId int) error {
-	tour, err := db.LoadTournament(tourId)
+func EndTournament(tourID int) error {
+	tour, err := db.LoadTournament(tourID)
 	if err != nil {
-		return err
+		return fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
 	}
 
 	rand.Seed(time.Now().UnixNano())
@@ -90,7 +109,7 @@ func EndTournament(tourId int) error {
 	tour.SetWinner(winN)
 
 	if err := db.SaveTournament(tour); err != nil {
-		return err
+		return fmt.Errorf("save tour %d in db: %v", tourID, err)
 	}
 
 	return nil
