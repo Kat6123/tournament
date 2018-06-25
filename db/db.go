@@ -23,11 +23,7 @@ func New(b Builder) api.Repository {
 
 func (m *mgoSession) Connect() (err error) {
 	m.session, err = mgo.Dial(m.url)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (m *mgoSession) Close() {
@@ -55,11 +51,8 @@ func (m *mgoSession) SavePlayer(p *model.Player) error {
 	defer s.Close()
 
 	c := s.DB("tournament").C("players")
-	if err := c.UpdateId(p.ID, &p); err != nil {
-		return err
-	}
 
-	return nil
+	return c.UpdateId(p.ID, &p)
 }
 
 func (m *mgoSession) LoadTournament(tourID int) (*model.Tournament, error) {
@@ -82,11 +75,8 @@ func (m *mgoSession) SaveTournament(t *model.Tournament) error {
 	defer s.Close()
 
 	c := s.DB("tournament").C("tours")
-	if err := c.UpdateId(t.ID, &t); err != nil {
-		return err
-	}
 
-	return nil
+	return c.UpdateId(t.ID, &t)
 }
 
 func (m *mgoSession) CreateTournament(t *model.Tournament) error {
