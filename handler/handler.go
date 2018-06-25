@@ -13,39 +13,41 @@ import (
 )
 
 func jsonError(w http.ResponseWriter, message string, code int) {
+	error := struct {
+		message string
+	}{
+		message: message,
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
-	fmt.Fprintf(w, "{message: %q}", message)
+	// What if error when encode 'error' ?
+	json.NewEncoder(w).Encode(error)
 }
 
-func jsonResponse(w http.ResponseWriter, v interface{}) error {
+func jsonResponse(w http.ResponseWriter, v interface{}) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		return fmt.Errorf("encode %s as json: %v", v, err)
+		jsonError(w, fmt.Sprintf("encode %s as json: %v", v, err), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)
-
-	return nil
 }
 
 func Take(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	playerId, err := strconv.Atoi(id)
+	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
-	p := mux.Vars(r)["points"]
-	points, err := strconv.ParseFloat(p, 32)
+	points, err := getFloat32QueryParam("points", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as float32 has failed: %v", p, err), http.StatusBadRequest)
 		return
 	}
 
-	if err := logic.Take(playerId, float32(points)); err != nil {
+	if err := logic.Take(playerID, points); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -58,21 +60,17 @@ func Take(w http.ResponseWriter, r *http.Request) {
 }
 
 func Fund(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	playerId, err := strconv.Atoi(id)
+	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
-	p := mux.Vars(r)["points"]
-	points, err := strconv.ParseFloat(p, 32)
+	points, err := getFloat32QueryParam("points", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as float32 has failed: %v", p, err), http.StatusBadRequest)
 		return
 	}
 
-	if err := logic.Fund(playerId, float32(points)); err != nil {
+	if err := logic.Fund(playerID, points); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -85,21 +83,17 @@ func Fund(w http.ResponseWriter, r *http.Request) {
 }
 
 func AnnounceTournament(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	tournamentId, err := strconv.Atoi(id)
+	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
-	p := mux.Vars(r)["points"]
-	deposit, err := strconv.ParseFloat(p, 32)
+	deposit, err := getFloat32QueryParam("points", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as float32 has failed: %v", p, err), http.StatusBadRequest)
 		return
 	}
 
-	if err := logic.AnnounceTournament(tournamentId, float32(deposit)); err != nil {
+	if err := logic.AnnounceTournament(tournamentID, deposit); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -113,21 +107,17 @@ func AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 }
 
 func JoinTournament(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	tournamentId, err := strconv.Atoi(id)
+	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
-	pId := mux.Vars(r)["playerId"]
-	playerId, err := strconv.Atoi(pId)
+	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
-	if err := logic.JoinTournament(tournamentId, playerId); err != nil {
+	if err := logic.JoinTournament(tournamentID, playerID); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -135,40 +125,36 @@ func JoinTournament(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusNotFound
 		}
 		jsonError(w, fmt.Sprintf("join to tournament id %d of player id %d has failed: %v",
-			tournamentId, playerId, err), status)
+			tournamentID, playerID, err), status)
 		return
 	}
 }
 
 func EndTournament(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	tournamentId, err := strconv.Atoi(id)
+	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
-	if err := logic.EndTournament(tournamentId); err != nil {
+	if err := logic.EndTournament(tournamentID); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
 		if err == mgo.ErrNotFound {
 			status = http.StatusNotFound
 		}
-		jsonError(w, fmt.Sprintf("end tournament id %d has failed: %v", tournamentId, err), status)
+		jsonError(w, fmt.Sprintf("end tournament id %d has failed: %v", tournamentID, err), status)
 		return
 	}
 }
 
 func ResultTournament(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	tournamentId, err := strconv.Atoi(id)
+	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
-	winner, err := logic.ResultTournament(tournamentId)
+	winner, err := logic.ResultTournament(tournamentID)
 	if err != nil {
 		status := http.StatusInternalServerError
 
@@ -176,26 +162,21 @@ func ResultTournament(w http.ResponseWriter, r *http.Request) {
 		if err == mgo.ErrNotFound {
 			status = http.StatusNotFound
 		}
-		jsonError(w, fmt.Sprintf("get result of tournament id %d has failed: %v", tournamentId, err), status)
+		jsonError(w, fmt.Sprintf("get result of tournament id %d has failed: %v", tournamentID, err), status)
 		return
 	}
 
-	if err := jsonResponse(w, winner); err != nil {
-		jsonError(w, fmt.Sprintf("write winner %s to response has failed: %v", winner, err), http.StatusInternalServerError)
-		return
-	}
+	jsonResponse(w, winner)
 }
 
 func Balance(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	playerId, err := strconv.Atoi(id)
+	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("parse %q as int has failed: %v", id, err), http.StatusBadRequest)
 		return
 	}
 
 	// Better to call db.LoadPlayer in logic.Balance?
-	player, err := logic.Balance(playerId)
+	player, err := logic.Balance(playerID)
 	if err != nil {
 		status := http.StatusInternalServerError
 
@@ -207,9 +188,28 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := jsonResponse(w, player); err != nil {
-		jsonError(w, fmt.Sprintf("write player %s to response has failed: %v", player, err),
-			http.StatusInternalServerError)
-		return
+	jsonResponse(w, player)
+}
+
+func getIntQueryParam(param string, w http.ResponseWriter, r *http.Request) (int, error) {
+	p, err := strconv.Atoi(mux.Vars(r)[param])
+	if err != nil {
+		// What return as error?
+		err := fmt.Errorf("parse %q as int has failed: %v", param, err)
+		jsonError(w, err.Error(), http.StatusBadRequest)
+		return 0, err
 	}
+
+	return p, nil
+}
+
+func getFloat32QueryParam(param string, w http.ResponseWriter, r *http.Request) (float32, error) {
+	p, err := strconv.ParseFloat(mux.Vars(r)[param], 32)
+	if err != nil {
+		err := fmt.Errorf("parse %q as float32 has failed: %v", param, err)
+		jsonError(w, err.Error(), http.StatusBadRequest)
+		return 0, err
+	}
+
+	return float32(p), nil
 }
