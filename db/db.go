@@ -1,85 +1,99 @@
 package db
 
 import (
-	"fmt"
-
 	"github.com/globalsign/mgo"
+	"github.com/kat6123/tournament/api"
 	"github.com/kat6123/tournament/model"
 )
 
-var session *mgo.Session
+type mgoSession struct {
+	url     string
+	session *mgo.Session
+}
 
-func Connect() {
-	s, err := mgo.Dial("127.0.0.1:27017")
-	if err != nil {
-		panic(fmt.Sprintf("dial with db has failed: %v", err))
+type Builder struct {
+	URL string
+}
+
+func New(b Builder) api.Repository {
+	return &mgoSession{
+		url: b.URL,
 	}
-	session = s
 }
 
-func Close() {
-	session.Close()
+func (m *mgoSession) Connect() (err error) {
+	m.session, err = mgo.Dial(m.url)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func LoadPlayer(playerId int) (*model.Player, error) {
-	s := session.Copy()
-	defer s.Close()
+func (m *mgoSession) Close() {
+	// Close doesn't return error ?
+	m.session.Close()
+}
+
+func (m *mgoSession) LoadPlayer(playerID int) (*model.Player, error) {
+	session := m.session.Copy()
+	defer session.Close()
 
 	c := session.DB("tournament").C("players")
 	var p model.Player
 
-	err := c.FindId(playerId).One(&p)
+	err := c.FindId(playerID).One(&p)
 	if err != nil {
-		return nil, fmt.Errorf("load player with id %d from db: %v", playerId, err)
+		return nil, err
 	}
 
 	return &p, nil
 }
 
-func SavePlayer(p *model.Player) error {
-	s := session.Copy()
+func (m *mgoSession) SavePlayer(p *model.Player) error {
+	s := m.session.Copy()
 	defer s.Close()
 
-	c := session.DB("tournament").C("players")
+	c := s.DB("tournament").C("players")
 	if err := c.UpdateId(p.ID, &p); err != nil {
-		return fmt.Errorf("save player %d in db: %v", p.ID, err)
+		return err
 	}
 	return nil
 }
 
-func LoadTournament(tourId int) (*model.Tournament, error) {
-	s := session.Copy()
+func (m *mgoSession) LoadTournament(tourID int) (*model.Tournament, error) {
+	s := m.session.Copy()
 	defer s.Close()
 
-	c := session.DB("tournament").C("tours")
+	c := s.DB("tournament").C("tours")
 	var t model.Tournament
 
-	err := c.FindId(tourId).One(&t)
+	err := c.FindId(tourID).One(&t)
 	if err != nil {
-		return nil, fmt.Errorf("load tournament with id %d from db: %v", tourId, err)
+		return nil, err
 	}
 
 	return &t, nil
 }
 
-func SaveTournament(t *model.Tournament) error {
-	s := session.Copy()
+func (m *mgoSession) SaveTournament(t *model.Tournament) error {
+	s := m.session.Copy()
 	defer s.Close()
 
-	c := session.DB("tournament").C("tours")
+	c := s.DB("tournament").C("tours")
 	if err := c.UpdateId(t.ID, &t); err != nil {
-		return fmt.Errorf("save tour %d in db: %v", t.ID, err)
+		return err
 	}
 	return nil
 }
 
-func CreateTournament(t *model.Tournament) error {
-	s := session.Copy()
+func (m *mgoSession) CreateTournament(t *model.Tournament) error {
+	s := m.session.Copy()
 	defer s.Close()
 
-	c := session.DB("tournament").C("tours")
+	c := s.DB("tournament").C("tours")
 	if err := c.Insert(t); err != nil {
-		return fmt.Errorf("insert tour %s in db: %v", t, err)
+		return nil
 	}
 
 	return nil
