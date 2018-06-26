@@ -9,7 +9,7 @@ import (
 
 var db api.Repository
 
-// Builder type should used to init package with repository.
+// Builder type should be used to init package with repository.
 type Builder struct {
 	R api.Repository
 }

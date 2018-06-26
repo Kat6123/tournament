@@ -11,10 +11,12 @@ type mgoSession struct {
 	session *mgo.Session
 }
 
+// Builder type should be used to init connection to MongoDB.
 type Builder struct {
 	URL string
 }
 
+// New returns value of api.Repository interface type which was tuned with Builder.
 func New(b Builder) api.Repository {
 	return &mgoSession{
 		url: b.URL,
@@ -84,9 +86,6 @@ func (m *mgoSession) CreateTournament(t *model.Tournament) error {
 	defer s.Close()
 
 	c := s.DB("tournament").C("tours")
-	if err := c.Insert(t); err != nil {
-		return err
-	}
 
-	return nil
+	return c.Insert(t)
 }
