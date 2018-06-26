@@ -55,7 +55,7 @@ func (t *Tournament) Join(p *Player) error {
 	}
 
 	if t.playerInTour(p.ID) {
-		return fmt.Errorf("player %d already in tour", p.ID)
+		return fmt.Errorf("player %d already in tour %d", p.ID, t.ID)
 	}
 
 	if err := p.Take(t.Deposit); err != nil {

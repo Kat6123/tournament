@@ -150,7 +150,7 @@ func TestTournament_Join(t *testing.T) {
 			expectedPlayerInTour:  true,
 			expectedTourBalance:   0,
 			expectedPlayerBalance: 400,
-			expectedErrStr:        "player 1 already in tour",
+			expectedErrStr:        "player 1 already in tour 123",
 		},
 		{
 			name: "tour was ended",
