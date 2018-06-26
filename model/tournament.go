@@ -55,11 +55,11 @@ func (t *Tournament) Join(p *Player) error {
 	}
 
 	if t.playerInTour(p.ID) {
-		return fmt.Errorf("player %d already in tour", t.ID)
+		return fmt.Errorf("player %d already in tour", p.ID)
 	}
 
 	if err := p.Take(t.Deposit); err != nil {
-		return err
+		return fmt.Errorf("take player %d funds when join to tour %d: %v", p.ID, t.ID, err)
 	}
 
 	t.Participants = append(t.Participants, p)
@@ -69,7 +69,7 @@ func (t *Tournament) Join(p *Player) error {
 }
 
 func (t *Tournament) String() string {
-	return fmt.Sprintf("Tournamnet:\n id %d \n deposit %g \n balance %g ", t.ID, t.Deposit, t.Balance)
+	return fmt.Sprintf("Tournamnet:\nid %d \ndeposit %g \nbalance %g ", t.ID, t.Deposit, t.Balance)
 }
 
 func (t *Tournament) playerInTour(id int) bool {
