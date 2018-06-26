@@ -7,8 +7,8 @@ import (
 type Tournament struct {
 	ID           int       `json:"id" bson:"_id"`
 	Deposit      float32   `json:"deposit" bson:"deposit"`
-	Participants []*Player `json:"players,omitempty" bson:"players,omitempty"`
 	Balance      float32   `json:"balance,omitempty" bson:"balance,omitempty"`
+	Participants []*Player `json:"players,omitempty" bson:"players,omitempty"`
 	Winner       Winner    `json:"winners,omitempty" bson:"winners,omitempty"`
 }
 
