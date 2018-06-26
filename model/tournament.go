@@ -2,8 +2,12 @@ package model
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 )
 
+// Tournament reflects tour ID, deposit, current balance and participants of tour.
+// When tour has ended the winner field is set and balance is reset.
 type Tournament struct {
 	ID           int       `json:"id" bson:"_id"`
 	Deposit      float32   `json:"deposit" bson:"deposit"`
@@ -12,36 +16,56 @@ type Tournament struct {
 	Winner       Winner    `json:"winners,omitempty" bson:"winners,omitempty"`
 }
 
+// Winner contains player and its prize.
 type Winner struct {
 	*Player
 	Prize float32
 }
 
-func (t *Tournament) SetDeposit(deposit float32) {
-	t.Deposit = deposit
+// NewTour create new Tournament based on id and deposit.
+func NewTour(id int, deposit float32) *Tournament {
+	return &Tournament{
+		ID:      id,
+		Deposit: deposit,
+	}
 }
 
-func (t *Tournament) SetWinner(num int) {
-	// XXX: Check for current tour
-	if &t.Winner != nil {
+// End ends a tour if it hasn't been ended yet.
+// It generates random player number and sets him as winner.
+// Prize for winner is set to deposit and player balance increase on deposit. Balance is reset.
+func (t *Tournament) End() {
+	if !t.hasEnded() {
+		n := t.generateWinnerNum()
+
 		t.Winner = Winner{
-			Player: t.Participants[num],
+			Player: t.Participants[n],
 			Prize:  t.Deposit,
 		}
 
-		t.Participants[num].Balance += t.Deposit
-
+		t.Participants[n].Fund(t.Deposit)
 		t.Balance = 0
 	}
 }
 
-func (t *Tournament) Join(p *Player) {
-	// XXX
-	if !t.playerInTour(p.ID) {
-		t.Participants = append(t.Participants, p)
-		p.Take(t.Deposit)
-		t.Balance += t.Deposit
+// Join joins player to tour.
+// If tour was ended, player is in tour already or  doesn't have enough funds returns an error.
+func (t *Tournament) Join(p *Player) error {
+	if t.hasEnded() {
+		return fmt.Errorf("tournir %d was ended", t.ID)
 	}
+
+	if t.playerInTour(p.ID) {
+		return fmt.Errorf("player %d already in tour", t.ID)
+	}
+
+	if err := p.Take(t.Deposit); err != nil {
+		return err
+	}
+
+	t.Participants = append(t.Participants, p)
+	t.Balance += t.Deposit
+
+	return nil
 }
 
 func (t *Tournament) String() string {
@@ -56,4 +80,13 @@ func (t *Tournament) playerInTour(id int) bool {
 	}
 
 	return false
+}
+
+func (t *Tournament) hasEnded() bool {
+	return t.Winner != (Winner{})
+}
+
+func (t *Tournament) generateWinnerNum() int {
+	rand.Seed(time.Now().UnixNano())
+	return rand.Intn(len(t.Participants))
 }

@@ -2,7 +2,7 @@ package model
 
 import "fmt"
 
-// Player is a struct which reflects its ID and balance.
+// Player reflects its player ID and its balance.
 type Player struct {
 	ID      int     `json:"playerId" bson:"_id"`
 	Balance float32 `json:"balance" bson:"balance"`
