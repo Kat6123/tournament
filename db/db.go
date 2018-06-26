@@ -85,7 +85,7 @@ func (m *mgoSession) CreateTournament(t *model.Tournament) error {
 
 	c := s.DB("tournament").C("tours")
 	if err := c.Insert(t); err != nil {
-		return nil
+		return err
 	}
 
 	return nil
