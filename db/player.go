@@ -21,3 +21,7 @@ func (pc *Players) DeletePlayer(playerID int) error {
 func (pc *Players) CreatePlayer(p *model.Player) error {
 	return pc.Insert(p)
 }
+
+func (pc *Players) Drop() error {
+	return pc.DropCollection()
+}
