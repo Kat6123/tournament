@@ -2,41 +2,13 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/globalsign/mgo"
-	"github.com/gorilla/mux"
-	"github.com/kat6123/tournament/logic"
 )
 
-func jsonError(w http.ResponseWriter, message string, code int) {
-	err := struct {
-		message string
-	}{
-		message: message,
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(code)
-	// What if error when encode 'error' ?
-	json.NewEncoder(w).Encode(err)
-}
-
-func jsonResponse(w http.ResponseWriter, v interface{}) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		jsonError(w, fmt.Sprintf("encode %s as json: %v", v, err), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
-}
-
-func Take(w http.ResponseWriter, r *http.Request) {
+func (a API) Take(w http.ResponseWriter, r *http.Request) {
 	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
 		return
@@ -47,7 +19,7 @@ func Take(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := logic.Take(playerID, points); err != nil {
+	if err := a.s.Take(playerID, points); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -59,7 +31,7 @@ func Take(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Fund(w http.ResponseWriter, r *http.Request) {
+func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
 		return
@@ -70,7 +42,7 @@ func Fund(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := logic.Fund(playerID, points); err != nil {
+	if err := a.s.Fund(playerID, points); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -82,7 +54,7 @@ func Fund(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AnnounceTournament(w http.ResponseWriter, r *http.Request) {
+func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
 		return
@@ -93,7 +65,7 @@ func AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := logic.AnnounceTournament(tournamentID, deposit); err != nil {
+	if err := a.s.AnnounceTournament(tournamentID, deposit); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -106,7 +78,7 @@ func AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func JoinTournament(w http.ResponseWriter, r *http.Request) {
+func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
 		return
@@ -117,7 +89,7 @@ func JoinTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := logic.JoinTournament(tournamentID, playerID); err != nil {
+	if err := a.s.JoinTournament(tournamentID, playerID); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -130,13 +102,13 @@ func JoinTournament(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func EndTournament(w http.ResponseWriter, r *http.Request) {
+func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
 		return
 	}
 
-	if err := logic.EndTournament(tournamentID); err != nil {
+	if err := a.s.EndTournament(tournamentID); err != nil {
 		status := http.StatusInternalServerError
 
 		// Bad dependency
@@ -148,13 +120,13 @@ func EndTournament(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ResultTournament(w http.ResponseWriter, r *http.Request) {
+func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
 		return
 	}
 
-	winner, err := logic.ResultTournament(tournamentID)
+	winner, err := a.s.ResultTournament(tournamentID)
 	if err != nil {
 		status := http.StatusInternalServerError
 
@@ -169,13 +141,13 @@ func ResultTournament(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, winner)
 }
 
-func Balance(w http.ResponseWriter, r *http.Request) {
+func (a API) Balance(w http.ResponseWriter, r *http.Request) {
 	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
 		return
 	}
 
-	b, err := logic.Balance(playerID)
+	b, err := a.s.Balance(playerID)
 	if err != nil {
 		status := http.StatusInternalServerError
 
@@ -195,27 +167,4 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		Balance:  b,
 	}
 	jsonResponse(w, balance)
-}
-
-func getIntQueryParam(param string, w http.ResponseWriter, r *http.Request) (int, error) {
-	p, err := strconv.Atoi(mux.Vars(r)[param])
-	if err != nil {
-		// What return as error?
-		err := fmt.Errorf("parse %q as int has failed: %v", param, err)
-		jsonError(w, err.Error(), http.StatusBadRequest)
-		return 0, err
-	}
-
-	return p, nil
-}
-
-func getFloat32QueryParam(param string, w http.ResponseWriter, r *http.Request) (float32, error) {
-	p, err := strconv.ParseFloat(mux.Vars(r)[param], 32)
-	if err != nil {
-		err := fmt.Errorf("parse %q as float32 has failed: %v", param, err)
-		jsonError(w, err.Error(), http.StatusBadRequest)
-		return 0, err
-	}
-
-	return float32(p), nil
 }
