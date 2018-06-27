@@ -16,3 +16,7 @@ func (tc *Tournaments) SaveTournament(t *model.Tournament) error {
 func (tc *Tournaments) CreateTournament(t *model.Tournament) error {
 	return tc.Insert(t)
 }
+
+func (tc *Tournaments) DeleteTournament(tourID int) error {
+	return tc.RemoveId(tourID)
+}

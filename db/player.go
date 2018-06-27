@@ -13,3 +13,11 @@ func (pc *Players) LoadPlayer(playerID int) (*model.Player, error) {
 func (pc *Players) SavePlayer(p *model.Player) error {
 	return pc.UpdateId(p.ID, &p)
 }
+
+func (pc *Players) DeletePlayer(playerID int) error {
+	return pc.RemoveId(playerID)
+}
+
+func (pc *Players) CreatePlayer(p *model.Player) error {
+	return pc.Insert(p)
+}
