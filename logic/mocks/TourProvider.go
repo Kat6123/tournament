@@ -9,22 +9,8 @@ type TourProvider struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: t
-func (_m *TourProvider) CreateTournament(t *model.Tournament) error {
-	ret := _m.Called(t)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Tournament) error); ok {
-		r0 = rf(t)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // ByID provides a mock function with given fields: tourID
-func (_m *TourProvider) LoadTournament(tourID int) (*model.Tournament, error) {
+func (_m *TourProvider) ByID(tourID int) (*model.Tournament, error) {
 	ret := _m.Called(tourID)
 
 	var r0 *model.Tournament
@@ -46,8 +32,22 @@ func (_m *TourProvider) LoadTournament(tourID int) (*model.Tournament, error) {
 	return r0, r1
 }
 
+// Create provides a mock function with given fields: t
+func (_m *TourProvider) Create(t *model.Tournament) error {
+	ret := _m.Called(t)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Tournament) error); ok {
+		r0 = rf(t)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: t
-func (_m *TourProvider) SaveTournament(t *model.Tournament) error {
+func (_m *TourProvider) Save(t *model.Tournament) error {
 	ret := _m.Called(t)
 
 	var r0 error

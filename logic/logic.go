@@ -9,15 +9,15 @@ import (
 type (
 	// PlayerProvider should be provided to use service of logic package. It should work with players collection.
 	PlayerProvider interface {
-		LoadPlayer(playerID int) (*model.Player, error)
-		SavePlayer(p *model.Player) error
+		ByID(playerID int) (*model.Player, error)
+		Save(p *model.Player) error
 	}
 
 	// TourProvider should be provided to use service of logic package. It should work with tours collection.
 	TourProvider interface {
-		LoadTournament(tourID int) (*model.Tournament, error)
-		SaveTournament(t *model.Tournament) error
-		CreateTournament(t *model.Tournament) error
+		ByID(tourID int) (*model.Tournament, error)
+		Save(t *model.Tournament) error
+		Create(t *model.Tournament) error
 	}
 
 	// Service provides API of logic package.
@@ -41,34 +41,34 @@ func New(b Builder) *Service {
 	}
 }
 
-// Take loads player from repository, takes points and saves it.
+// Take ByIDs player from repository, takes points and saves it.
 func (s *Service) Take(playerID int, points float32) error {
-	player, err := s.pp.LoadPlayer(playerID)
+	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
+		return fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
 	}
 
 	if err := player.Take(points); err != nil {
 		return fmt.Errorf("take points from player %d: %v", playerID, err)
 	}
 
-	if err := s.pp.SavePlayer(player); err != nil {
+	if err := s.pp.Save(player); err != nil {
 		return fmt.Errorf("save player %d in db: %v", playerID, err)
 	}
 
 	return nil
 }
 
-// Fund loads player from repository, funds points and saves it.
+// Fund ByIDs player from repository, funds points and saves it.
 func (s *Service) Fund(playerID int, points float32) error {
-	player, err := s.pp.LoadPlayer(playerID)
+	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
+		return fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
 	}
 
 	player.Fund(points)
 
-	if err := s.pp.SavePlayer(player); err != nil {
+	if err := s.pp.Save(player); err != nil {
 		return fmt.Errorf("save player %d in db: %v", playerID, err)
 	}
 
@@ -79,7 +79,7 @@ func (s *Service) Fund(playerID int, points float32) error {
 func (s *Service) AnnounceTournament(tourID int, deposit float32) error {
 	tour := model.NewTour(tourID, deposit)
 
-	if err := s.tp.CreateTournament(tour); err != nil {
+	if err := s.tp.Create(tour); err != nil {
 		return fmt.Errorf("insert tour %d in db: %v", tourID, err)
 	}
 
@@ -88,57 +88,57 @@ func (s *Service) AnnounceTournament(tourID int, deposit float32) error {
 
 // JoinTournament joins player to tour and saves tour in db.
 func (s *Service) JoinTournament(tourID, playerID int) error {
-	tour, err := s.tp.LoadTournament(tourID)
+	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
+		return fmt.Errorf("ByID tournament with id %d from db: %v", tourID, err)
 	}
 
-	player, err := s.pp.LoadPlayer(playerID)
+	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
+		return fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
 	}
 
 	if err := tour.Join(player); err != nil {
 		return err
 	}
 
-	if err := s.tp.SaveTournament(tour); err != nil {
+	if err := s.tp.Save(tour); err != nil {
 		return fmt.Errorf("save tour %d in db: %v", tourID, err)
 	}
 
 	return nil
 }
 
-// Balance loads player and returns it balance.
+// Balance ByIDs player and returns it balance.
 func (s *Service) Balance(playerID int) (float32, error) {
-	player, err := s.pp.LoadPlayer(playerID)
+	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return 0, fmt.Errorf("load player with id %d from db: %v", playerID, err)
+		return 0, fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
 	}
 
 	return player.Balance, nil
 }
 
-// ResultTournament loads tour and returns its winner.
+// ResultTournament ByIDs tour and returns its winner.
 func (s *Service) ResultTournament(tourID int) (*model.Winner, error) {
-	tour, err := s.tp.LoadTournament(tourID)
+	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return nil, fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
+		return nil, fmt.Errorf("ByID tournament with id %d from db: %v", tourID, err)
 	}
 
 	return &tour.Winner, nil
 }
 
-// EndTournament loads tour, ends it and saves in db.
+// EndTournament ByIDs tour, ends it and saves in db.
 func (s *Service) EndTournament(tourID int) error {
-	tour, err := s.tp.LoadTournament(tourID)
+	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
+		return fmt.Errorf("ByID tournament with id %d from db: %v", tourID, err)
 	}
 
 	tour.End()
 
-	if err := s.tp.SaveTournament(tour); err != nil {
+	if err := s.tp.Save(tour); err != nil {
 		return fmt.Errorf("save tour %d in db: %v", tourID, err)
 	}
 
