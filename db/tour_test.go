@@ -5,34 +5,34 @@ import (
 
 	"github.com/kat6123/tournament/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
+const testID = 1
+
+// Is it better to use require thane err != nil?
+// Can one test run in parallel?
 func TestChangeTour(t *testing.T) {
 	_, tc, err := New(URL, DB)
-	if err != nil {
-		t.Fatalf("dial with db has failed: %v", err)
-	}
+	require.Nil(t, err, "dial with db has failed: %v", err)
+
 	defer func() {
-		if err = tc.DeleteTournament(1); err != nil {
-			t.Fatalf("can't delete test tour: %v", err)
-		}
+		err = tc.delete(testID)
+		require.Nil(t, err, "can't delete test tour: %v", err)
 	}()
 
-	tour := model.NewTour(1, 300)
+	tour := model.NewTour(testID, 300)
 
-	if err = tc.CreateTournament(tour); err != nil {
-		t.Fatalf("unable to create a tour %s: %v", tour, err)
-	}
+	tc.Create(tour)
+	require.Nil(t, err, "unable to create a tour %s: %v", tour, err)
 
 	tour.Deposit += 100
-	if err = tc.SaveTournament(tour); err != nil {
-		t.Fatalf("unable to save a tour %s: %v", tour, err)
-	}
+	tc.Save(tour)
+	require.Nil(t, err, "unable to save a tour %s: %v", tour, err)
 
 	var gotT *model.Tournament
-	if gotT, err = tc.LoadTournament(tour.ID); err != nil {
-		t.Fatalf("unable to save a tour %s: %v", tour, err)
-	}
+	gotT, err = tc.ByID(tour.ID)
+	require.Nil(t, err, "unable to save a tour %s: %v", tour, err)
 
 	assert.Equal(t, tour, gotT)
 }

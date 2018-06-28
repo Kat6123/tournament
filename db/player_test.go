@@ -3,9 +3,9 @@ package db
 import (
 	"testing"
 
-	"github.com/globalsign/mgo"
 	"github.com/kat6123/tournament/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -13,123 +13,30 @@ const (
 	DB  = "test"
 )
 
-func dropCollection(pc *Players, t *testing.T) {
-	if err := pc.DropCollection(); err != nil {
-		t.Fatalf("can't drop collection: %v", err)
-	}
-}
-
-func TestPlayers_CreatePlayer(t *testing.T) {
+func TestChangePlayer(t *testing.T) {
 	pc, _, err := New(URL, DB)
-	if err != nil {
-		t.Fatalf("dial with db has failed: %v", err)
-	}
-	defer dropCollection(pc, t)
+	require.Nil(t, err, "dial with db has failed: %v", err)
 
-	p := &model.Player{
-		ID:      1,
+	defer func() {
+		err = pc.delete(testID)
+		require.Nil(t, err, "can't delete test tour: %v", err)
+	}()
+
+	player := &model.Player{
+		ID:      testID,
 		Balance: 300,
 	}
 
-	if err = pc.CreatePlayer(p); err != nil {
-		t.Fatalf("unable to create player %s: %v", p, err)
-	}
+	pc.create(player)
+	require.Nil(t, err, "unable to create a player %s: %v", player, err)
 
-	cursor := pc.FindId(p.ID)
-	n, err := cursor.Count()
-	if err != nil {
-		t.Fatalf("unable to count players: %v", err)
-	}
-	if n != 1 {
-		t.Fatalf("create more than one player")
-	}
+	player.Balance += 100
+	pc.Save(player)
+	require.Nil(t, err, "unable to save a player %s: %v", player, err)
 
-	gotP := new(model.Player)
-	if err := cursor.One(gotP); err != nil {
-		t.Fatalf("unnable to fetch player: %v", err)
-	}
+	var gotP *model.Player
+	gotP, err = pc.ByID(player.ID)
+	require.Nil(t, err, "unable to save a tour %s: %v", player, err)
 
-	assert.Equal(t, p, gotP)
-}
-
-func TestPlayers_LoadPlayer(t *testing.T) {
-	pc, _, err := New(URL, DB)
-	if err != nil {
-		t.Fatalf("dial with db has failed: %v", err)
-	}
-	defer dropCollection(pc, t)
-
-	p := &model.Player{
-		ID:      1,
-		Balance: 300,
-	}
-
-	if err = pc.CreatePlayer(p); err != nil {
-		t.Fatalf("unable to create player %s: %v", p, err)
-	}
-
-	gotP, err := pc.LoadPlayer(p.ID)
-	if err != nil {
-		t.Fatalf("unnable to load player: %v", err)
-	}
-
-	assert.Equal(t, p, gotP)
-}
-
-func TestPlayers_SavePlayer(t *testing.T) {
-	pc, _, err := New(URL, DB)
-	if err != nil {
-		t.Fatalf("dial with db has failed: %v", err)
-	}
-	defer dropCollection(pc, t)
-
-	p := &model.Player{
-		ID:      1,
-		Balance: 300,
-	}
-
-	if err = pc.CreatePlayer(p); err != nil {
-		t.Fatalf("unable to create player %s: %v", p, err)
-	}
-
-	p.Balance += 100
-	if err = pc.SavePlayer(p); err != nil {
-		t.Fatalf("unable to save player %s: %v", p, err)
-	}
-
-	gotP, err := pc.LoadPlayer(p.ID)
-	if err != nil {
-		t.Fatalf("unnable to load player: %v", err)
-	}
-
-	assert.Equal(t, p, gotP)
-}
-
-func TestPlayers_DeletePlayer(t *testing.T) {
-	pc, _, err := New(URL, DB)
-	if err != nil {
-		t.Fatalf("dial with db has failed: %v", err)
-	}
-	defer dropCollection(pc, t)
-
-	p := &model.Player{
-		ID:      1,
-		Balance: 300,
-	}
-
-	if err = pc.CreatePlayer(p); err != nil {
-		t.Fatalf("unable to create player %s: %v", p, err)
-	}
-
-	if err = pc.DeletePlayer(p.ID); err != nil {
-		t.Fatalf("unable to delete player %s: %v", p, err)
-	}
-
-	// Why struct should be empty?
-	got, err := pc.LoadPlayer(p.ID)
-	if err != nil {
-		assert.Equal(t, mgo.ErrNotFound, err, "should get error not found")
-	}
-
-	assert.Equal(t, model.Player{}, *got, "load player was successful when should be deleted")
+	assert.Equal(t, player, gotP)
 }
