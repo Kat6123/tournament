@@ -7,17 +7,20 @@ import (
 )
 
 type (
+	// PlayerProvider should be provided to use service of logic package. It should work with players collection.
 	PlayerProvider interface {
 		LoadPlayer(playerID int) (*model.Player, error)
 		SavePlayer(p *model.Player) error
 	}
 
+	// TourProvider should be provided to use service of logic package. It should work with tours collection.
 	TourProvider interface {
 		LoadTournament(tourID int) (*model.Tournament, error)
 		SaveTournament(t *model.Tournament) error
 		CreateTournament(t *model.Tournament) error
 	}
 
+	// Service provides API of logic package.
 	Service struct {
 		pp PlayerProvider
 		tp TourProvider

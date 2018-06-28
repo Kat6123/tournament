@@ -1,3 +1,4 @@
+// Package db provides types Players and Tournaments which allows work with MongoDB collections.
 package db
 
 import (
@@ -16,7 +17,7 @@ type (
 	}
 )
 
-// New dials with db and init Players and Tournaments with Mongo collections,
+// New dials with db and init Players and Tournaments with collections,
 // which are named 'players' and 'tours' accordingly.
 func New(URL string, DB string) (*Players, *Tournaments, error) {
 	s, err := mgo.Dial(URL)
