@@ -5,18 +5,6 @@ import (
 	"github.com/globalsign/mgo"
 )
 
-type (
-	// Players implements PlayerProvider interface.
-	Players struct {
-		*mgo.Collection
-	}
-
-	// Tournaments implements TournamentProvider interface and.
-	Tournaments struct {
-		*mgo.Collection
-	}
-)
-
 // New dials with db and init Players and Tournaments with collections,
 // which are named 'players' and 'tours' accordingly.
 func New(URL string, DB string) (*Players, *Tournaments, error) {
@@ -29,5 +17,3 @@ func New(URL string, DB string) (*Players, *Tournaments, error) {
 		&Tournaments{s.DB(DB).C("tours")},
 		nil
 }
-
-// How to close the session?
