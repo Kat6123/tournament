@@ -9,7 +9,7 @@ type PlayerProvider struct {
 	mock.Mock
 }
 
-// LoadPlayer provides a mock function with given fields: playerID
+// ByID provides a mock function with given fields: playerID
 func (_m *PlayerProvider) LoadPlayer(playerID int) (*model.Player, error) {
 	ret := _m.Called(playerID)
 
@@ -32,7 +32,7 @@ func (_m *PlayerProvider) LoadPlayer(playerID int) (*model.Player, error) {
 	return r0, r1
 }
 
-// SavePlayer provides a mock function with given fields: p
+// Save provides a mock function with given fields: p
 func (_m *PlayerProvider) SavePlayer(p *model.Player) error {
 	ret := _m.Called(p)
 

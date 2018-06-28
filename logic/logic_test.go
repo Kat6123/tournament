@@ -3,7 +3,7 @@ package logic
 import (
 	"testing"
 
-	"github.com/kat6123/tournament/mocks"
+	"github.com/kat6123/tournament/logic/mocks"
 	"github.com/kat6123/tournament/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -36,8 +36,8 @@ func TestService_Take(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			player := &model.Player{ID: 1, Balance: tc.balance}
 			ppMock := new(mocks.PlayerProvider)
-			ppMock.On("LoadPlayer", 1).Return(player, nil)
-			ppMock.On("SavePlayer", mock.Anything).Return(nil)
+			ppMock.On("ByID", 1).Return(player, nil)
+			ppMock.On("Save", mock.Anything).Return(nil)
 
 			s := New(Builder{
 				PP: ppMock,
@@ -46,7 +46,7 @@ func TestService_Take(t *testing.T) {
 			err := s.Take(player.ID, tc.points)
 			if err != nil {
 				assert.EqualError(t, err, tc.expectedErrMsg, "error should be generated")
-				ppMock.AssertNotCalled(t, "SavePlayer")
+				ppMock.AssertNotCalled(t, "Save")
 			} else {
 				ppMock.AssertExpectations(t)
 			}
@@ -77,8 +77,8 @@ func TestService_Fund(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			player := &model.Player{ID: 1, Balance: tc.balance}
 			ppMock := new(mocks.PlayerProvider)
-			ppMock.On("LoadPlayer", 1).Return(player, nil)
-			ppMock.On("SavePlayer", mock.Anything).Return(nil)
+			ppMock.On("ByID", 1).Return(player, nil)
+			ppMock.On("Save", mock.Anything).Return(nil)
 
 			s := New(Builder{
 				PP: ppMock,
@@ -87,7 +87,7 @@ func TestService_Fund(t *testing.T) {
 			err := s.Fund(player.ID, tc.points)
 			if err != nil {
 				assert.EqualError(t, err, tc.expectedErrMsg, "error should be generated")
-				ppMock.AssertNotCalled(t, "SavePlayer")
+				ppMock.AssertNotCalled(t, "Save")
 			} else {
 				ppMock.AssertExpectations(t)
 			}
@@ -120,7 +120,7 @@ func TestService_Fund(t *testing.T) {
 //			createdTour := new(model.Tournament)
 //
 //			tpMock := new(mocks.TourProvider)
-//			tpMock.On("CreateTournament", createdTour).Return(
+//			tpMock.On("Create", createdTour).Return(
 //				nil)
 //
 //			s := New(Builder{
