@@ -9,132 +9,74 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestService_Take(t *testing.T) {
-	tt := []struct {
-		name            string
-		balance         float32
-		points          float32
-		expectedBalance float32
-		expectedErrMsg  string
-	}{
-		{
-			name:            "take 100 points from 200",
-			balance:         200,
-			points:          100,
-			expectedBalance: 100,
-		},
-		{
-			name:            "insufficient funds",
-			balance:         50,
-			points:          100,
-			expectedBalance: 50,
-			expectedErrMsg:  "take points from player 1: insufficient funds",
-		},
-	}
+func TestService_TakeNormal(t *testing.T) {
+	playerID := 1
+	points := float32(300)
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			player := &model.Player{ID: 1, Balance: tc.balance}
-			ppMock := new(mocks.PlayerProvider)
-			ppMock.On("ByID", 1).Return(player, nil)
-			ppMock.On("Save", mock.Anything).Return(nil)
+	pp := new(mocks.PlayerProvider)
+	pp.On("ByID", playerID).Return(&model.Player{ID: playerID, Balance: 300}, nil)
+	pp.On("Save", mock.Anything).Return(nil)
 
-			s := New(Builder{
-				PP: ppMock,
-			})
+	service := Service{pp: pp}
+	err := service.Take(playerID, points)
+	assert.Nil(t, err)
 
-			err := s.Take(player.ID, tc.points)
-			if err != nil {
-				assert.EqualError(t, err, tc.expectedErrMsg, "error should be generated")
-				ppMock.AssertNotCalled(t, "Save")
-			} else {
-				ppMock.AssertExpectations(t)
-			}
-			assert.Equal(t, player.Balance, tc.expectedBalance, "balance doesn't match")
-
-			//ppMock.AssertExpectations(t) Обязательно проверять?
-		})
-	}
+	pp.AssertExpectations(t)
 }
 
-func TestService_Fund(t *testing.T) {
-	tt := []struct {
-		name            string
-		balance         float32
-		points          float32
-		expectedBalance float32
-		expectedErrMsg  string
-	}{
-		{
-			name:            "fund 100 points",
-			balance:         200,
-			points:          100,
-			expectedBalance: 300,
-		},
-	}
+func TestService_TakeErr(t *testing.T) {
+	playerID := 1
+	points := float32(300)
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			player := &model.Player{ID: 1, Balance: tc.balance}
-			ppMock := new(mocks.PlayerProvider)
-			ppMock.On("ByID", 1).Return(player, nil)
-			ppMock.On("Save", mock.Anything).Return(nil)
+	pp := new(mocks.PlayerProvider)
+	pp.On("ByID", playerID).Return(&model.Player{ID: playerID, Balance: 300}, nil)
+	pp.On("Save", mock.Anything).Return(nil)
 
-			s := New(Builder{
-				PP: ppMock,
-			})
-
-			err := s.Fund(player.ID, tc.points)
-			if err != nil {
-				assert.EqualError(t, err, tc.expectedErrMsg, "error should be generated")
-				ppMock.AssertNotCalled(t, "Save")
-			} else {
-				ppMock.AssertExpectations(t)
-			}
-			assert.Equal(t, player.Balance, tc.expectedBalance, "balance doesn't match")
-
-			//ppMock.AssertExpectations(t) Обязательно проверять?
-		})
-	}
+	service := Service{pp: pp}
+	err := service.Take(playerID, points+100)
+	assert.EqualError(t, err, "take points from player 1: insufficient funds")
+	// Test that load was called?
 }
 
-// Не нужно проверять что и как инициализировалось внутри?
-//func TestService_AnnounceTournament(t *testing.T) {
+//func TestService_Take(t *testing.T) {
+//	const (
+//		points = 300
+//	)
+//	pp := new(mocks.PlayerProvider)
+//	pp.On("ByID", 1).Return(nil, fmt.Errorf("d"))
+//	pp.On("ByID", 1).Return(nil, fmt.Errorf("d"))
+//	pp.On("ByID", 1).Return(nil, fmt.Errorf("d"))
+//	pp.On("Save", test.ID).Return(fmt.Errorf(test.savePlayerErr))
+//
 //	tt := []struct {
-//		name           string
-//		tourID         int
-//		deposit        float32
-//		expectedErrMsg string
+//		name string
+//
+//		ID            int
+//		byIDErr       string
+//		savePlayerErr string
+//		expectedErr   string
 //	}{
 //		{
-//			name:   "announce tour with ID and deposit",
-//			tourID: 123,
-//			// How to check for duplicate and etc.?
-//			// Check for negative deposit?
-//			deposit: 200,
+//			name:        "load error",
+//			ID:          1,
+//			byIDErr:     "load failed",
+//			expectedErr: "load player with id 1 from db: load failed",
+//		},
+//		{
+//			name:          "save error",
+//			ID:           t 2,
+//			savePlayerErr: "save failed",
+//			expectedErr:   "take points player with id 1 from db: ?",
 //		},
 //	}
 //
-//	for _, tc := range tt {
-//		t.Run(tc.name, func(t *testing.T) {
-//			createdTour := new(model.Tournament)
+//	for _, tc := range t {
+//		t.Run(test.name, func(t *testing.T) {
+//			service := Service{pp: pp}
+//			err := service.Take(test.ID, points)
+//			assert.EqualError(t, err, test.expectedErr)
 //
-//			tpMock := new(mocks.TourProvider)
-//			tpMock.On("Create", createdTour).Return(
-//				nil)
-//
-//			s := New(Builder{
-//				TP: tpMock,
-//			})
-//
-//			expectedTour := model.Tournament{
-//				Deposit: tc.deposit,
-//			}
-//
-//			_ = s.AnnounceTournament(tc.tourID, tc.deposit)
-//			assert.Equal(t, createdTour, expectedTour)
-//
-//			tpMock.AssertExpectations(t)
+//			//pp.AssertExpectations(t)
 //		})
 //	}
 //}

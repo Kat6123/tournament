@@ -45,7 +45,7 @@ func New(b Builder) *Service {
 func (s *Service) Take(playerID int, points float32) error {
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
+		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
 	}
 
 	if err := player.Take(points); err != nil {
