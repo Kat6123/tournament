@@ -3,80 +3,63 @@ package logic
 import (
 	"testing"
 
+	"fmt"
+
 	"github.com/kat6123/tournament/logic/mocks"
 	"github.com/kat6123/tournament/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-func TestService_TakeNormal(t *testing.T) {
-	playerID := 1
-	points := float32(300)
+func TestService_Take(t *testing.T) {
+	const points = 200
+	tt := []struct {
+		name           string
+		ID             int
+		expectedErrMsg string
+	}{
+		{
+			name: "normal",
+			ID:   1,
+		},
+		{
+			name:           "load error",
+			ID:             2,
+			expectedErrMsg: "load player with id 2 from db: load failed",
+		},
+		{
+			name:           "take error",
+			ID:             3,
+			expectedErrMsg: "take points from player 3: insufficient funds",
+		},
+		{
+			name:           "save error",
+			ID:             4,
+			expectedErrMsg: "save ",
+		},
+	}
 
 	pp := new(mocks.PlayerProvider)
-	pp.On("ByID", playerID).Return(&model.Player{ID: playerID, Balance: 300}, nil)
-	pp.On("Save", mock.Anything).Return(nil)
+	pp.On("ByID", 1).Return(&model.Player{ID: 1, Balance: 300}, nil)
+	pp.On("Save", &model.Player{1, 300 - points}).Return(nil)
+
+	pp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
+
+	// Balance less than points to cause take error
+	pp.On("ByID", 3).Return(&model.Player{ID: 1, Balance: 100}, nil)
+
+	pp.On("ByID", 4).Return(&model.Player{ID: 1, Balance: 300}, nil)
+	pp.On("Save", &model.Player{1, 300 - points}).Return(
+		fmt.Errorf("save failed"))
 
 	service := Service{pp: pp}
-	err := service.Take(playerID, points)
-	assert.Nil(t, err)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			err := service.Take(tc.ID, points)
+			if err != nil {
+				assert.EqualError(t, err, tc.expectedErrMsg)
+			}
+		})
+	}
 
 	pp.AssertExpectations(t)
 }
-
-func TestService_TakeErr(t *testing.T) {
-	playerID := 1
-	points := float32(300)
-
-	pp := new(mocks.PlayerProvider)
-	pp.On("ByID", playerID).Return(&model.Player{ID: playerID, Balance: 300}, nil)
-	pp.On("Save", mock.Anything).Return(nil)
-
-	service := Service{pp: pp}
-	err := service.Take(playerID, points+100)
-	assert.EqualError(t, err, "take points from player 1: insufficient funds")
-	// Test that load was called?
-}
-
-//func TestService_Take(t *testing.T) {
-//	const (
-//		points = 300
-//	)
-//	pp := new(mocks.PlayerProvider)
-//	pp.On("ByID", 1).Return(nil, fmt.Errorf("d"))
-//	pp.On("ByID", 1).Return(nil, fmt.Errorf("d"))
-//	pp.On("ByID", 1).Return(nil, fmt.Errorf("d"))
-//	pp.On("Save", test.ID).Return(fmt.Errorf(test.savePlayerErr))
-//
-//	tt := []struct {
-//		name string
-//
-//		ID            int
-//		byIDErr       string
-//		savePlayerErr string
-//		expectedErr   string
-//	}{
-//		{
-//			name:        "load error",
-//			ID:          1,
-//			byIDErr:     "load failed",
-//			expectedErr: "load player with id 1 from db: load failed",
-//		},
-//		{
-//			name:          "save error",
-//			ID:           t 2,
-//			savePlayerErr: "save failed",
-//			expectedErr:   "take points player with id 1 from db: ?",
-//		},
-//	}
-//
-//	for _, tc := range t {
-//		t.Run(test.name, func(t *testing.T) {
-//			service := Service{pp: pp}
-//			err := service.Take(test.ID, points)
-//			assert.EqualError(t, err, test.expectedErr)
-//
-//			//pp.AssertExpectations(t)
-//		})
-//	}
-//}
