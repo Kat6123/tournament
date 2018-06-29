@@ -6,6 +6,9 @@ import (
 
 	"net/http/httptest"
 
+	"fmt"
+	"io/ioutil"
+
 	"github.com/kat6123/tournament/handler/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,6 +44,15 @@ func TestAPI_Take(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			api.Take(w, req)
+
+			resp := w.Result()
+			defer resp.Body.Close()
+			body, _ := ioutil.ReadAll(resp.Body)
+
+			fmt.Println(resp.StatusCode)
+			fmt.Println(resp.Header.Get("Content-Type"))
+			fmt.Println(string(body))
+
 			assert.Equal(t, tc.expectedStatus, w.Code)
 			assert.Equal(t, tc.expectedBody, w.Body.String())
 		})

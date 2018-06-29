@@ -293,45 +293,45 @@ func TestService_ResultTournament(t *testing.T) {
 	tp.AssertExpectations(t)
 }
 
-//func TestService_EndTournament(t *testing.T) {
-//	tp := new(mocks.TourProvider)
-//	tp.On("ByID", 1).Return(
-//		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}}}, nil)
-//	tp.On("Save",
-//		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}}, Winner: model.Winner{Player: &model.Player{ID: 1}}}).Return(
-//		&model.Tournament{ID: 1}, nil)
-//	tp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
-//
-//	tt := []struct {
-//		name           string
-//		ID             int
-//		expectedErrMsg string
-//	}{
-//		{
-//			name: "normal",
-//			ID:   1,
-//		},
-//		{
-//			name:           "load error",
-//			ID:             2,
-//			expectedErrMsg: "load tournament 2 from db: load failed",
-//		},
-//		{
-//			name:           "save error",
-//			ID:             3,
-//			expectedErrMsg: "save tournament 3 from db: load failed",
-//		},
-//	}
-//
-//	service := Service{tp: tp}
-//	for _, tc := range tt {
-//		t.Run(tc.name, func(t *testing.T) {
-//			err := service.EndTournament(tc.ID)
-//			if err != nil {
-//				assert.EqualError(t, err, tc.expectedErrMsg)
-//			}
-//		})
-//	}
-//
-//	tp.AssertExpectations(t)
-//}
+func TestService_EndTournament(t *testing.T) {
+	tp := new(mocks.TourProvider)
+	tp.On("ByID", 1).Return(
+		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}}}, nil)
+	tp.On("Save",
+		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}}, Winner: model.Winner{Player: &model.Player{ID: 1}}}).Return(
+		nil)
+	tp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
+
+	tt := []struct {
+		name           string
+		ID             int
+		expectedErrMsg string
+	}{
+		{
+			name: "normal",
+			ID:   1,
+		},
+		{
+			name:           "load error",
+			ID:             2,
+			expectedErrMsg: "load tournament 2 from db: load failed",
+		},
+		{
+			name:           "save error",
+			ID:             3,
+			expectedErrMsg: "save tournament 3 from db: load failed",
+		},
+	}
+
+	service := Service{tp: tp}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			err := service.EndTournament(tc.ID)
+			if err != nil {
+				assert.EqualError(t, err, tc.expectedErrMsg)
+			}
+		})
+	}
+
+	tp.AssertExpectations(t)
+}
