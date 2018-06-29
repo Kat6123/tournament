@@ -63,7 +63,7 @@ func (s *Service) Take(playerID int, points float32) error {
 func (s *Service) Fund(playerID int, points float32) error {
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
+		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
 	}
 
 	player.Fund(points)
@@ -90,12 +90,12 @@ func (s *Service) AnnounceTournament(tourID int, deposit float32) error {
 func (s *Service) JoinTournament(tourID, playerID int) error {
 	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return fmt.Errorf("ByID tournament with id %d from db: %v", tourID, err)
+		return fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
 	}
 
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
+		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
 	}
 
 	if err := tour.Join(player); err != nil {
@@ -109,31 +109,31 @@ func (s *Service) JoinTournament(tourID, playerID int) error {
 	return nil
 }
 
-// Balance ByIDs player and returns it balance.
+// Balance loads player and returns it balance.
 func (s *Service) Balance(playerID int) (float32, error) {
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return 0, fmt.Errorf("ByID player with id %d from db: %v", playerID, err)
+		return 0, fmt.Errorf("load player %d from db: %v", playerID, err)
 	}
 
 	return player.Balance, nil
 }
 
-// ResultTournament ByIDs tour and returns its winner.
+// ResultTournament loads tour and returns its winner.
 func (s *Service) ResultTournament(tourID int) (*model.Winner, error) {
 	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return nil, fmt.Errorf("ByID tournament with id %d from db: %v", tourID, err)
+		return nil, fmt.Errorf("laod tournament %d from db: %v", tourID, err)
 	}
 
 	return &tour.Winner, nil
 }
 
-// EndTournament ByIDs tour, ends it and saves in db.
+// EndTournament loads tour, ends it and saves in db.
 func (s *Service) EndTournament(tourID int) error {
 	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return fmt.Errorf("ByID tournament with id %d from db: %v", tourID, err)
+		return fmt.Errorf("load tournament %d from db: %v", tourID, err)
 	}
 
 	tour.End()
