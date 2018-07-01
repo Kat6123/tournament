@@ -10,8 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const points = 200
+
 func TestService_Take(t *testing.T) {
-	const points = 200
 	tt := []struct {
 		name           string
 		ID             int
@@ -39,8 +40,10 @@ func TestService_Take(t *testing.T) {
 	}
 
 	pp := new(mocks.PlayerProvider)
+	defer pp.AssertExpectations(t)
+
 	pp.On("ByID", 1).Return(&model.Player{ID: 1, Balance: 300}, nil)
-	pp.On("Save", &model.Player{ID: 1, Balance: 300 - points}).Return(nil)
+	pp.On("Save", &model.Player{ID: 1, Balance: 100}).Return(nil)
 
 	pp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
 
@@ -48,7 +51,7 @@ func TestService_Take(t *testing.T) {
 	pp.On("ByID", 3).Return(&model.Player{ID: 3, Balance: 100}, nil)
 
 	pp.On("ByID", 4).Return(&model.Player{ID: 4, Balance: 300}, nil)
-	pp.On("Save", &model.Player{ID: 4, Balance: 300 - points}).Return(
+	pp.On("Save", &model.Player{ID: 4, Balance: 100}).Return(
 		fmt.Errorf("save failed"))
 
 	service := Service{pp: pp}
@@ -60,12 +63,9 @@ func TestService_Take(t *testing.T) {
 			}
 		})
 	}
-
-	pp.AssertExpectations(t)
 }
 
 func TestService_Fund(t *testing.T) {
-	const points = 200
 	tt := []struct {
 		name           string
 		ID             int
@@ -88,13 +88,15 @@ func TestService_Fund(t *testing.T) {
 	}
 
 	pp := new(mocks.PlayerProvider)
+	defer pp.AssertExpectations(t)
+
 	pp.On("ByID", 1).Return(&model.Player{ID: 1, Balance: 300}, nil)
-	pp.On("Save", &model.Player{ID: 1, Balance: 300 + points}).Return(nil)
+	pp.On("Save", &model.Player{ID: 1, Balance: 500}).Return(nil)
 
 	pp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
 
 	pp.On("ByID", 3).Return(&model.Player{ID: 3, Balance: 300}, nil)
-	pp.On("Save", &model.Player{ID: 3, Balance: 300 + points}).Return(
+	pp.On("Save", &model.Player{ID: 3, Balance: 500}).Return(
 		fmt.Errorf("save failed"))
 
 	service := Service{pp: pp}
@@ -106,8 +108,6 @@ func TestService_Fund(t *testing.T) {
 			}
 		})
 	}
-
-	pp.AssertExpectations(t)
 }
 
 func TestService_AnnounceTournament(t *testing.T) {
@@ -131,8 +131,9 @@ func TestService_AnnounceTournament(t *testing.T) {
 	}
 
 	tp := new(mocks.TourProvider)
-	tp.On("Create", &model.Tournament{ID: tt[0].ID, Deposit: tt[0].deposit}).Return(nil)
-	tp.On("Create", &model.Tournament{ID: tt[1].ID, Deposit: tt[1].deposit}).Return(
+	defer tp.AssertExpectations(t)
+	tp.On("Create", &model.Tournament{ID: 1, Deposit: 300}).Return(nil)
+	tp.On("Create", &model.Tournament{ID: 2, Deposit: 300}).Return(
 		fmt.Errorf("create failed"))
 
 	service := Service{tp: tp}
@@ -186,32 +187,36 @@ func TestService_JoinTournament(t *testing.T) {
 	}
 
 	pp := new(mocks.PlayerProvider)
-	pp.On("ByID", tt[0].playerID).Return(&model.Player{ID: tt[0].playerID}, nil)
+	defer pp.AssertExpectations(t)
 
-	pp.On("ByID", tt[2].playerID).Return(
+	pp.On("ByID", 1).Return(&model.Player{ID: 1}, nil)
+
+	pp.On("ByID", 3).Return(
 		nil, fmt.Errorf("load failed"))
 
-	pp.On("ByID", tt[3].playerID).Return(&model.Player{ID: tt[3].playerID}, nil)
+	pp.On("ByID", 4).Return(&model.Player{ID: 4}, nil)
 
-	pp.On("ByID", tt[4].playerID).Return(&model.Player{ID: tt[4].playerID}, nil)
+	pp.On("ByID", 5).Return(&model.Player{ID: 5}, nil)
 
 	tp := new(mocks.TourProvider)
-	tp.On("ByID", tt[0].tourID).Return(&model.Tournament{ID: tt[0].tourID}, nil)
-	tp.On("Save",
-		&model.Tournament{ID: tt[0].tourID, Participants: []*model.Player{{ID: tt[0].playerID}}}).Return(nil)
+	defer tp.AssertExpectations(t)
 
-	tp.On("ByID", tt[1].tourID).Return(
+	tp.On("ByID", 1).Return(&model.Tournament{ID: 1}, nil)
+	tp.On("Save",
+		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}}}).Return(nil)
+
+	tp.On("ByID", 2).Return(
 		&model.Tournament{}, fmt.Errorf("load failed"))
 
-	tp.On("ByID", tt[2].tourID).Return(nil, nil)
+	tp.On("ByID", 3).Return(nil, nil)
 
 	// Return tour that was ended.
-	tp.On("ByID", tt[3].tourID).Return(
-		&model.Tournament{ID: tt[3].tourID, Winner: model.Winner{Prize: 100}}, nil)
+	tp.On("ByID", 4).Return(
+		&model.Tournament{ID: 4, Winner: model.Winner{Prize: 100}}, nil)
 
-	tp.On("ByID", tt[4].tourID).Return(&model.Tournament{ID: tt[4].tourID}, nil)
+	tp.On("ByID", 5).Return(&model.Tournament{ID: 5}, nil)
 	tp.On("Save",
-		&model.Tournament{ID: tt[4].tourID, Participants: []*model.Player{{ID: tt[4].playerID}}}).Return(
+		&model.Tournament{ID: 5, Participants: []*model.Player{{ID: 5}}}).Return(
 		fmt.Errorf("save failed"))
 
 	s := Service{pp: pp, tp: tp}
@@ -227,6 +232,8 @@ func TestService_JoinTournament(t *testing.T) {
 
 func TestService_Balance(t *testing.T) {
 	pp := new(mocks.PlayerProvider)
+	defer pp.AssertExpectations(t)
+
 	pp.On("ByID", 1).Return(&model.Player{ID: 1, Balance: 300}, nil)
 	pp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
 
@@ -261,6 +268,8 @@ func TestService_Balance(t *testing.T) {
 
 func TestService_ResultTournament(t *testing.T) {
 	tp := new(mocks.TourProvider)
+	defer tp.AssertExpectations(t)
+
 	tp.On("ByID", 1).Return(&model.Tournament{}, nil)
 	tp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
 
@@ -289,19 +298,27 @@ func TestService_ResultTournament(t *testing.T) {
 			}
 		})
 	}
-
-	tp.AssertExpectations(t)
 }
 
 func TestService_EndTournament(t *testing.T) {
 	tp := new(mocks.TourProvider)
+	defer tp.AssertExpectations(t)
+
 	tp.On("ByID", 1).Return(
 		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}}}, nil)
 	tp.On("Save",
-		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}}, Winner: model.Winner{Player: &model.Player{ID: 1}}}).Return(
+		&model.Tournament{ID: 1, Participants: []*model.Player{{ID: 1}},
+			Winner: model.Winner{Player: &model.Player{ID: 1}}}).Return(
 		nil)
+
 	tp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
 
+	tp.On("ByID", 3).Return(
+		&model.Tournament{ID: 3, Participants: []*model.Player{{ID: 3}}}, nil)
+	tp.On("Save",
+		&model.Tournament{ID: 3, Participants: []*model.Player{{ID: 3}},
+			Winner: model.Winner{Player: &model.Player{ID: 3}}}).Return(
+		fmt.Errorf("save failed"))
 	tt := []struct {
 		name           string
 		ID             int
@@ -319,7 +336,7 @@ func TestService_EndTournament(t *testing.T) {
 		{
 			name:           "save error",
 			ID:             3,
-			expectedErrMsg: "save tournament 3 from db: load failed",
+			expectedErrMsg: "save tour 3 in db: save failed",
 		},
 	}
 
@@ -332,6 +349,14 @@ func TestService_EndTournament(t *testing.T) {
 			}
 		})
 	}
+}
 
-	tp.AssertExpectations(t)
+// What I should test in New method?
+func TestNew(t *testing.T) {
+	pp := new(mocks.PlayerProvider)
+	tp := new(mocks.TourProvider)
+
+	s := New(Builder{PP: pp, TP: tp})
+
+	assert.Equal(t, &Service{pp: pp, tp: tp}, s)
 }
