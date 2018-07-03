@@ -1,4 +1,4 @@
-// Package route provides router and method to set handler for initial paths.
+// Package handler provides router and method to set handler for initial paths.
 package handler
 
 import (
@@ -14,6 +14,7 @@ const (
 )
 
 type (
+	// TourService will used by handlers.
 	TourService interface {
 		// Take loads player from repository, takes points and saves it.
 		Take(playerID int, points float32) error
@@ -31,12 +32,14 @@ type (
 		EndTournament(tourID int) error
 	}
 
+	// API providesmethods to work with handler package.
 	API struct {
 		s TourService
 		r *mux.Router
 	}
 )
 
+// New returns new API instance and initializes api router.
 func New(s TourService) *API {
 	a := &API{
 		s: s,
@@ -47,6 +50,7 @@ func New(s TourService) *API {
 	return a
 }
 
+// Router returns Router of API instance. It will be initialized after New method is called.
 func (a API) Router() *mux.Router {
 	return a.r
 }

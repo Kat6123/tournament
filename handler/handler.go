@@ -1,4 +1,4 @@
-// Package handlers provides handlers for initial urls.
+// Package handler provides handlers for initial urls.
 package handler
 
 import (
@@ -8,6 +8,7 @@ import (
 	"github.com/globalsign/mgo"
 )
 
+// Take handler takes player points.
 func (a API) Take(w http.ResponseWriter, r *http.Request) {
 	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
@@ -31,6 +32,7 @@ func (a API) Take(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Fund handler funds points to player.
 func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
@@ -54,6 +56,7 @@ func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// AnnounceTournament handler announces a new tournament.
 func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
@@ -78,6 +81,7 @@ func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// JoinTournament handler joins player to tour.
 func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
@@ -102,6 +106,7 @@ func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// EndTournament handler ends the tour.
 func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
@@ -120,6 +125,7 @@ func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ResultTournament handler returns the result of the tour.
 func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := getIntQueryParam("tournamentID", w, r)
 	if err != nil {
@@ -141,6 +147,7 @@ func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, winner)
 }
 
+// Balance handler returns the balance of the tour.
 func (a API) Balance(w http.ResponseWriter, r *http.Request) {
 	playerID, err := getIntQueryParam("playerID", w, r)
 	if err != nil {
@@ -160,10 +167,10 @@ func (a API) Balance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	balance := struct {
-		PlayerId int     `json:"playerId"`
+		PlayerID int     `json:"playerId"`
 		Balance  float32 `json:"balance"`
 	}{
-		PlayerId: playerID,
+		PlayerID: playerID,
 		Balance:  b,
 	}
 	jsonResponse(w, balance)
