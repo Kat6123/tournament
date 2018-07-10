@@ -7,34 +7,23 @@ import (
 	"strconv"
 )
 
-func jsonError(w http.ResponseWriter, message string, code int) {
-	err := struct {
-		Message string `json:"message"`
-	}{
-		Message: message,
-	}
-
+func jsonError(w http.ResponseWriter, errMsg string, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 
-	if err := json.NewEncoder(w).Encode(err); err != nil {
+	if err := json.NewEncoder(w).Encode(message{errMsg}); err != nil {
 		panic(fmt.Sprintf("encode error to json has failed: %v", err))
 	}
 }
 
 func jsonResponse(w http.ResponseWriter, v interface{}) {
-	b, err := json.Marshal(v)
+	err := json.NewEncoder(w).Encode(v)
 	if err != nil {
 		jsonError(w, fmt.Sprintf("encode %s as json: %v", v, err), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	// What about status code?
-	if _, err := w.Write(b); err != nil {
-		jsonError(w, fmt.Sprintf("write response body: %v", err), http.StatusInternalServerError)
-		return
-	}
 }
 
 func getIntQueryParam(param string, w http.ResponseWriter, r *http.Request) (int, error) {

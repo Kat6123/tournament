@@ -1,15 +1,14 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
-	"testing"
-
 	"net/http/httptest"
+	"testing"
 
 	"io/ioutil"
 
-	"fmt"
-
+	"github.com/gavv/httpexpect"
 	"github.com/globalsign/mgo"
 	"github.com/kat6123/tournament/handler/mocks"
 	"github.com/kat6123/tournament/model"
@@ -30,21 +29,22 @@ func TestAPI_Take(t *testing.T) {
 			playerID:       "1",
 			points:         "200",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "",
+			expectedBody:   `{"message":"points was taken"}`,
 		},
 		{
-			name:           "wrong playerID param",
-			playerID:       "abra",
-			points:         "200",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"playerID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
+			name:     "wrong playerID param",
+			playerID: "abra",
+			points:   "200",
+			// Routing stops all bad requests for query string?
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "wrong points param",
 			playerID:       "1",
 			points:         "abra",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"points\\\" as float32 has failed: strconv.ParseFloat: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:     "take error",
@@ -52,14 +52,14 @@ func TestAPI_Take(t *testing.T) {
 			points:   "200",
 			// Is it an internal error? May be bad request?
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "{\"message\":\"take points has failed: insufficient funds\"}\n",
+			expectedBody:   `{"message":"take points has failed: insufficient funds"}`,
 		},
 		{
 			name:           "not found error",
 			playerID:       "353",
 			points:         "200",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   "{\"message\":\"take points has failed: not found\"}\n",
+			expectedBody:   `{"message":"take points has failed: not found"}`,
 		},
 	}
 
@@ -69,26 +69,19 @@ func TestAPI_Take(t *testing.T) {
 	ts.On("Take", 2, float32(200)).Return(fmt.Errorf("insufficient funds"))
 	ts.On("Take", 353, float32(200)).Return(mgo.ErrNotFound)
 
-	api := API{s: ts}
+	server := httptest.NewServer(
+		New(ts).Router())
+	defer server.Close()
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest(
-				http.MethodPut, "/take?playerID="+tc.playerID+"&points="+tc.points, nil)
-			require.NoError(t, err, "create test has failed: %v", err)
+			e := httpexpect.New(t, server.URL)
 
-			w := httptest.NewRecorder()
+			resp := e.PUT("/take").
+				WithQuery("playerID", tc.playerID).
+				WithQuery("points", tc.points).Expect()
 
-			api.Take(w, req)
-
-			resp := w.Result()
-			defer resp.Body.Close()
-
-			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err, "couldn't read response body: %v", err)
-
-			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
-			assert.Equal(t, tc.expectedBody, string(body))
+			resp.Status(tc.expectedStatus).Body().Equal(tc.expectedBody + "\n")
 		})
 	}
 }
@@ -106,21 +99,7 @@ func TestAPI_Fund(t *testing.T) {
 			playerID:       "1",
 			points:         "200",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "",
-		},
-		{
-			name:           "wrong playerID param",
-			playerID:       "abra",
-			points:         "200",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"playerID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
-		},
-		{
-			name:           "wrong points param",
-			playerID:       "1",
-			points:         "abra",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"points\\\" as float32 has failed: strconv.ParseFloat: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedBody:   `{"message":"points was funded"}`,
 		},
 		{
 			name:     "fund error",
@@ -128,14 +107,14 @@ func TestAPI_Fund(t *testing.T) {
 			points:   "200",
 			// Is it an internal error? May be bad request?
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "{\"message\":\"fund points has failed: fund error\"}\n",
+			expectedBody:   `{"message":"fund points has failed: fund error"}`,
 		},
 		{
 			name:           "not found error",
 			playerID:       "353",
 			points:         "200",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   "{\"message\":\"fund points has failed: not found\"}\n",
+			expectedBody:   `{"message":"fund points has failed: not found"}`,
 		},
 	}
 
@@ -145,26 +124,19 @@ func TestAPI_Fund(t *testing.T) {
 	ts.On("Fund", 2, float32(200)).Return(fmt.Errorf("fund error"))
 	ts.On("Fund", 353, float32(200)).Return(mgo.ErrNotFound)
 
-	api := API{s: ts}
+	server := httptest.NewServer(
+		New(ts).Router())
+	defer server.Close()
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest(
-				http.MethodPut, "/fund?playerID="+tc.playerID+"&points="+tc.points, nil)
-			require.NoError(t, err, "create test has failed: %v", err)
+			e := httpexpect.New(t, server.URL)
 
-			w := httptest.NewRecorder()
+			resp := e.PUT("/fund").
+				WithQuery("playerID", tc.playerID).
+				WithQuery("points", tc.points).Expect()
 
-			api.Fund(w, req)
-
-			resp := w.Result()
-			defer resp.Body.Close()
-
-			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err, "couldn't read response body: %v", err)
-
-			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
-			assert.Equal(t, tc.expectedBody, string(body))
+			resp.Status(tc.expectedStatus).Body().Equal(tc.expectedBody + "\n")
 		})
 	}
 }
@@ -182,35 +154,35 @@ func TestAPI_AnnounceTournament(t *testing.T) {
 			tournamentID:   "1",
 			points:         "200",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "",
+			expectedBody:   `{"message":"tour was announced"}`,
 		},
 		{
-			name:           "wrong playerID param",
+			name:           "wrong tourID param",
 			tournamentID:   "abra",
 			points:         "200",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"tournamentID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "wrong points param",
 			tournamentID:   "1",
 			points:         "abra",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"points\\\" as float32 has failed: strconv.ParseFloat: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "announce error",
 			tournamentID:   "2",
 			points:         "200",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "{\"message\":\"announce tournament has failed: announce error\"}\n",
+			expectedBody:   `{"message":"announce tournament has failed: announce error"}`,
 		},
 		{
 			name:           "dup error",
 			tournamentID:   "353",
 			points:         "200",
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"announce tournament has failed: duplicate was found\"}\n",
+			expectedBody:   `{"message":"announce tournament has failed: duplicate was found"}`,
 		},
 	}
 
@@ -221,26 +193,19 @@ func TestAPI_AnnounceTournament(t *testing.T) {
 	ts.On("AnnounceTournament", 353, float32(200)).Return(
 		&mgo.QueryError{Code: 11000, Message: "duplicate was found"})
 
-	api := API{s: ts}
+	server := httptest.NewServer(
+		New(ts).Router())
+	defer server.Close()
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest(
-				http.MethodPut, "/announceTournament?tournamentID="+tc.tournamentID+"&points="+tc.points, nil)
-			require.NoError(t, err, "create test has failed: %v", err)
+			e := httpexpect.New(t, server.URL)
 
-			w := httptest.NewRecorder()
+			resp := e.PUT("/announceTournament").
+				WithQuery("tournamentID", tc.tournamentID).
+				WithQuery("deposit", tc.points).Expect()
 
-			api.AnnounceTournament(w, req)
-
-			resp := w.Result()
-			defer resp.Body.Close()
-
-			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err, "couldn't read response body: %v", err)
-
-			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
-			assert.Equal(t, tc.expectedBody, string(body))
+			resp.Status(tc.expectedStatus).Body().Equal(tc.expectedBody + "\n")
 		})
 	}
 }
@@ -258,35 +223,35 @@ func TestAPI_JoinTournament(t *testing.T) {
 			tournamentID:   "1",
 			playerID:       "2",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "",
+			expectedBody:   `{"message":"player was joined"}`,
 		},
 		{
 			name:           "wrong tourID param",
 			tournamentID:   "abra",
 			playerID:       "200",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"tournamentID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "wrong playerID param",
 			tournamentID:   "1",
 			playerID:       "abra",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"playerID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "join error",
 			tournamentID:   "2",
 			playerID:       "3",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "{\"message\":\"join to tournament id 2 of player id 3 has failed: join error\"}\n",
+			expectedBody:   `{"message":"join to tournament id 2 of player id 3 has failed: join error"}`,
 		},
 		{
 			name:           "not found error",
 			tournamentID:   "3",
 			playerID:       "4",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   "{\"message\":\"join to tournament id 3 of player id 4 has failed: not found\"}\n",
+			expectedBody:   `{"message":"join to tournament id 3 of player id 4 has failed: not found"}`,
 		},
 	}
 
@@ -296,26 +261,19 @@ func TestAPI_JoinTournament(t *testing.T) {
 	ts.On("JoinTournament", 2, 3).Return(fmt.Errorf("join error"))
 	ts.On("JoinTournament", 3, 4).Return(mgo.ErrNotFound)
 
-	api := API{s: ts}
+	server := httptest.NewServer(
+		New(ts).Router())
+	defer server.Close()
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest(
-				http.MethodPut, "/joinTournament?tournamentID="+tc.tournamentID+"&playerID="+tc.playerID, nil)
-			require.NoError(t, err, "create test has failed: %v", err)
+			e := httpexpect.New(t, server.URL)
 
-			w := httptest.NewRecorder()
+			resp := e.PUT("/joinTournament").
+				WithQuery("tournamentID", tc.tournamentID).
+				WithQuery("playerID", tc.playerID).Expect()
 
-			api.JoinTournament(w, req)
-
-			resp := w.Result()
-			defer resp.Body.Close()
-
-			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err, "couldn't read response body: %v", err)
-
-			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
-			assert.Equal(t, tc.expectedBody, string(body))
+			resp.Status(tc.expectedStatus).Body().Equal(tc.expectedBody + "\n")
 		})
 	}
 }
@@ -331,25 +289,25 @@ func TestAPI_EndTournament(t *testing.T) {
 			name:           "end tour 1",
 			tournamentID:   "1",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "",
+			expectedBody:   `{"message":"tour was ended"}`,
 		},
 		{
 			name:           "wrong tourID param",
 			tournamentID:   "abra",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"tournamentID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "end error",
 			tournamentID:   "2",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "{\"message\":\"end tournament id 2 has failed: end error\"}\n",
+			expectedBody:   `{"message":"end tournament id 2 has failed: end error"}`,
 		},
 		{
 			name:           "not found error",
 			tournamentID:   "3",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   "{\"message\":\"end tournament id 3 has failed: not found\"}\n",
+			expectedBody:   `{"message":"end tournament id 3 has failed: not found"}`,
 		},
 	}
 
@@ -359,26 +317,18 @@ func TestAPI_EndTournament(t *testing.T) {
 	ts.On("EndTournament", 2).Return(fmt.Errorf("end error"))
 	ts.On("EndTournament", 3).Return(mgo.ErrNotFound)
 
-	api := API{s: ts}
+	server := httptest.NewServer(
+		New(ts).Router())
+	defer server.Close()
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest(
-				http.MethodPut, "/endTournament?tournamentID="+tc.tournamentID, nil)
-			require.NoError(t, err, "create test has failed: %v", err)
+			e := httpexpect.New(t, server.URL)
 
-			w := httptest.NewRecorder()
+			resp := e.PUT("/endTournament").
+				WithQuery("tournamentID", tc.tournamentID).Expect()
 
-			api.EndTournament(w, req)
-
-			resp := w.Result()
-			defer resp.Body.Close()
-
-			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err, "couldn't read response body: %v", err)
-
-			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
-			assert.Equal(t, tc.expectedBody, string(body))
+			resp.Status(tc.expectedStatus).Body().Equal(tc.expectedBody + "\n")
 		})
 	}
 }
@@ -394,25 +344,25 @@ func TestAPI_ResultTournament(t *testing.T) {
 			name:           "result of first tour",
 			tournamentID:   "1",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "{\"playerId\":1,\"balance\":500,\"Prize\":400}",
+			expectedBody:   `{"playerId":1,"balance":500,"Prize":400}`,
 		},
 		{
 			name:           "wrong tourID param",
 			tournamentID:   "abra",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"tournamentID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "result error",
 			tournamentID:   "2",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "{\"message\":\"get result of tournament id 2 has failed: end error\"}\n",
+			expectedBody:   `{"message":"get result of tournament id 2 has failed: end error"}`,
 		},
 		{
 			name:           "not found error",
 			tournamentID:   "3",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   "{\"message\":\"get result of tournament id 3 has failed: not found\"}\n",
+			expectedBody:   `{"message":"get result of tournament id 3 has failed: not found"}`,
 		},
 	}
 
@@ -428,26 +378,18 @@ func TestAPI_ResultTournament(t *testing.T) {
 	ts.On("ResultTournament", 3).Return(
 		nil, mgo.ErrNotFound)
 
-	api := API{s: ts}
+	server := httptest.NewServer(
+		New(ts).Router())
+	defer server.Close()
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest(
-				http.MethodPut, "/resultTournament?tournamentID="+tc.tournamentID, nil)
-			require.NoError(t, err, "create test has failed: %v", err)
+			e := httpexpect.New(t, server.URL)
 
-			w := httptest.NewRecorder()
+			resp := e.GET("/resultTournament").
+				WithQuery("tournamentID", tc.tournamentID).Expect()
 
-			api.ResultTournament(w, req)
-
-			resp := w.Result()
-			defer resp.Body.Close()
-
-			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err, "couldn't read response body: %v", err)
-
-			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
-			assert.Equal(t, tc.expectedBody, string(body))
+			resp.Status(tc.expectedStatus).Body().Equal(tc.expectedBody + "\n")
 		})
 	}
 }
@@ -463,25 +405,25 @@ func TestAPI_Balance(t *testing.T) {
 			name:           "result of first tour",
 			playerID:       "1",
 			expectedStatus: http.StatusOK,
-			expectedBody:   "{\"playerId\":1,\"balance\":300}",
+			expectedBody:   `{"playerId":1,"balance":300}`,
 		},
 		{
 			name:           "wrong tourID param",
 			playerID:       "abra",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "{\"message\":\"parse \\\"playerID\\\" as int has failed: strconv.Atoi: parsing \\\"abra\\\": invalid syntax\"}\n",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   `404 page not found`,
 		},
 		{
 			name:           "balance error",
 			playerID:       "2",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "{\"message\":\"load balance has failed: balance error\"}\n",
+			expectedBody:   `{"message":"load balance has failed: balance error"}`,
 		},
 		{
 			name:           "not found error",
 			playerID:       "3",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   "{\"message\":\"load balance has failed: not found\"}\n",
+			expectedBody:   `{"message":"load balance has failed: not found"}`,
 		},
 	}
 
@@ -491,17 +433,54 @@ func TestAPI_Balance(t *testing.T) {
 	ts.On("Balance", 2).Return(float32(0), fmt.Errorf("balance error"))
 	ts.On("Balance", 3).Return(float32(0), mgo.ErrNotFound)
 
-	api := API{s: ts}
+	server := httptest.NewServer(
+		New(ts).Router())
+	defer server.Close()
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			e := httpexpect.New(t, server.URL)
+
+			resp := e.GET("/balance").
+				WithQuery("playerID", tc.playerID).Expect()
+
+			resp.Status(tc.expectedStatus).Body().Equal(tc.expectedBody + "\n")
+		})
+	}
+}
+
+func Test_badQueryStrings(t *testing.T) {
+	tt := []struct {
+		name           string
+		url            string
+		qs             string
+		expectedStatus int
+	}{
+		{
+			name: "wrong playerID param in fund",
+			url:  "/fund",
+			qs:   "?playerID=abra&points=200",
+			// Routing stops all bad requests for query string?
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "wrong points param in fund",
+			qs:             "?playerID=1&points=abra",
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	api := API{}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			req, err := http.NewRequest(
-				http.MethodPut, "/balance?playerID="+tc.playerID, nil)
+				http.MethodPut, tc.url+tc.qs, nil)
 			require.NoError(t, err, "create test has failed: %v", err)
 
 			w := httptest.NewRecorder()
 
-			api.Balance(w, req)
+			api.Fund(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()
@@ -510,7 +489,6 @@ func TestAPI_Balance(t *testing.T) {
 			require.NoError(t, err, "couldn't read response body: %v", err)
 
 			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
-			assert.Equal(t, tc.expectedBody, string(body))
 		})
 	}
 }

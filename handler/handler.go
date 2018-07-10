@@ -30,6 +30,8 @@ func (a API) Take(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, fmt.Sprintf("take points has failed: %v", err), status)
 		return
 	}
+
+	jsonResponse(w, message{"points was taken"})
 }
 
 // Fund handler funds points to player.
@@ -54,6 +56,8 @@ func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, fmt.Sprintf("fund points has failed: %v", err), status)
 		return
 	}
+
+	jsonResponse(w, message{"points was funded"})
 }
 
 // AnnounceTournament handler announces a new tournament.
@@ -63,7 +67,7 @@ func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deposit, err := getFloat32QueryParam("points", w, r)
+	deposit, err := getFloat32QueryParam("deposit", w, r)
 	if err != nil {
 		return
 	}
@@ -79,6 +83,7 @@ func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	jsonResponse(w, message{"tour was announced"})
 }
 
 // JoinTournament handler joins player to tour.
@@ -104,6 +109,8 @@ func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 			tournamentID, playerID, err), status)
 		return
 	}
+
+	jsonResponse(w, message{"player was joined"})
 }
 
 // EndTournament handler ends the tour.
@@ -123,6 +130,8 @@ func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, fmt.Sprintf("end tournament id %d has failed: %v", tournamentID, err), status)
 		return
 	}
+
+	jsonResponse(w, message{"tour was ended"})
 }
 
 // ResultTournament handler returns the result of the tour.
@@ -166,12 +175,5 @@ func (a API) Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance := struct {
-		PlayerID int     `json:"playerId"`
-		Balance  float32 `json:"balance"`
-	}{
-		PlayerID: playerID,
-		Balance:  b,
-	}
-	jsonResponse(w, balance)
+	jsonResponse(w, balance{playerID, b})
 }
