@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/globalsign/mgo"
+	"github.com/kat6123/tournament/errors"
 	"github.com/kat6123/tournament/model"
 )
 
@@ -15,6 +16,19 @@ func (pc *Players) ByID(playerID int) (*model.Player, error) {
 	p := new(model.Player)
 	err := pc.FindId(playerID).One(p)
 
+	if err != nil {
+		errKind := errors.Other
+		if err == mgo.ErrNotFound {
+			errKind = errors.NotFound
+		}
+
+		return nil, &errors.Error{
+			ID:     playerID,
+			Entity: "player",
+			Kind:   errKind,
+			Err:    err,
+		}
+	}
 	return p, err
 }
 
