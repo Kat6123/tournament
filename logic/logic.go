@@ -1,8 +1,7 @@
 package logic
 
 import (
-	"fmt"
-
+	"github.com/kat6123/tournament/errors"
 	"github.com/kat6123/tournament/model"
 )
 
@@ -45,15 +44,15 @@ func New(b Builder) *Service {
 func (s *Service) Take(playerID int, points float32) error {
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
+		return errors.Wrap(err, "load")
 	}
 
 	if err := player.Take(points); err != nil {
-		return fmt.Errorf("take points from player %d: %v", playerID, err)
+		return errors.Wrap(err, "take points")
 	}
 
 	if err := s.pp.Save(player); err != nil {
-		return fmt.Errorf("save player %d in db: %v", playerID, err)
+		return errors.Wrap(err, "save")
 	}
 
 	return nil
@@ -63,13 +62,13 @@ func (s *Service) Take(playerID int, points float32) error {
 func (s *Service) Fund(playerID int, points float32) error {
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
+		return errors.Wrap(err, "load")
 	}
 
 	player.Fund(points)
 
 	if err := s.pp.Save(player); err != nil {
-		return fmt.Errorf("save player %d in db: %v", playerID, err)
+		return errors.Wrap(err, "save")
 	}
 
 	return nil
@@ -80,7 +79,7 @@ func (s *Service) AnnounceTournament(tourID int, deposit float32) error {
 	tour := model.NewTour(tourID, deposit)
 
 	if err := s.tp.Create(tour); err != nil {
-		return fmt.Errorf("insert tour %d in db: %v", tourID, err)
+		return errors.Wrap(err, "insert")
 	}
 
 	return nil
@@ -90,12 +89,12 @@ func (s *Service) AnnounceTournament(tourID int, deposit float32) error {
 func (s *Service) JoinTournament(tourID, playerID int) error {
 	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return fmt.Errorf("load tournament with id %d from db: %v", tourID, err)
+		return errors.Wrap(err, "load")
 	}
 
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return fmt.Errorf("load player with id %d from db: %v", playerID, err)
+		return errors.Wrap(err, "load")
 	}
 
 	if err := tour.Join(player); err != nil {
@@ -103,7 +102,7 @@ func (s *Service) JoinTournament(tourID, playerID int) error {
 	}
 
 	if err := s.tp.Save(tour); err != nil {
-		return fmt.Errorf("save tour %d in db: %v", tourID, err)
+		return errors.Wrap(err, "save")
 	}
 
 	return nil
@@ -113,7 +112,7 @@ func (s *Service) JoinTournament(tourID, playerID int) error {
 func (s *Service) Balance(playerID int) (float32, error) {
 	player, err := s.pp.ByID(playerID)
 	if err != nil {
-		return 0, fmt.Errorf("load player %d from db: %v", playerID, err)
+		return 0, errors.Wrap(err, "load")
 	}
 
 	return player.Balance, nil
@@ -123,7 +122,7 @@ func (s *Service) Balance(playerID int) (float32, error) {
 func (s *Service) ResultTournament(tourID int) (*model.Winner, error) {
 	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return nil, fmt.Errorf("laod tournament %d from db: %v", tourID, err)
+		return nil, errors.Wrap(err, "load")
 	}
 
 	return &tour.Winner, nil
@@ -133,13 +132,13 @@ func (s *Service) ResultTournament(tourID int) (*model.Winner, error) {
 func (s *Service) EndTournament(tourID int) error {
 	tour, err := s.tp.ByID(tourID)
 	if err != nil {
-		return fmt.Errorf("load tournament %d from db: %v", tourID, err)
+		return errors.Wrap(err, "load")
 	}
 
 	tour.End()
 
 	if err := s.tp.Save(tour); err != nil {
-		return fmt.Errorf("save tour %d in db: %v", tourID, err)
+		return errors.Wrap(err, "save")
 	}
 
 	return nil
