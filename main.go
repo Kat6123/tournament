@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	pc, tc, err := db.New("27017", "tours")
+	pc, tc, err := db.New(":27017", "tours")
 	if err != nil {
 		log.Fatalf("dial with db has failed: %v", err)
 	}
