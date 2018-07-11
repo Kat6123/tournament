@@ -14,21 +14,39 @@ type Players struct {
 func (pc *Players) ByID(playerID int) (*model.Player, error) {
 	p := new(model.Player)
 	err := pc.FindId(playerID).One(p)
+	if err != nil {
+		return p, constructErr(err, "player", playerID)
+	}
 
-	return p, err
+	return p, nil
 }
 
 // Save updates player model by id.
 func (pc *Players) Save(p *model.Player) error {
-	return pc.UpdateId(p.ID, &p)
+	err := pc.UpdateId(p.ID, &p)
+	if err != nil {
+		return constructErr(err, "player", p.ID)
+	}
+
+	return nil
 }
 
 // delete deletes player by id.
 func (pc *Players) delete(playerID int) error {
-	return pc.RemoveId(playerID)
+	err := pc.RemoveId(playerID)
+	if err != nil {
+		return constructErr(err, "player", playerID)
+	}
+
+	return nil
 }
 
 // create inserts new player.
 func (pc *Players) create(p *model.Player) error {
-	return pc.Insert(p)
+	err := pc.Insert(p)
+	if err != nil {
+		return constructErr(err, "player", p.ID)
+	}
+
+	return nil
 }
