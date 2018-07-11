@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/globalsign/mgo"
+	"github.com/kat6123/tournament/errors"
 )
 
 // Take handler takes player points.
@@ -21,13 +21,7 @@ func (a API) Take(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.s.Take(playerID, points); err != nil {
-		status := http.StatusInternalServerError
-
-		// Bad dependency
-		if err == mgo.ErrNotFound {
-			status = http.StatusNotFound
-		}
-		jsonError(w, fmt.Sprintf("take points has failed: %v", err), status)
+		jsonError(w, fmt.Sprintf("take points has failed: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -47,13 +41,7 @@ func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.s.Fund(playerID, points); err != nil {
-		status := http.StatusInternalServerError
-
-		// Bad dependency
-		if err == mgo.ErrNotFound {
-			status = http.StatusNotFound
-		}
-		jsonError(w, fmt.Sprintf("fund points has failed: %v", err), status)
+		jsonError(w, fmt.Sprintf("fund points has failed: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -73,13 +61,7 @@ func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.s.AnnounceTournament(tournamentID, deposit); err != nil {
-		status := http.StatusInternalServerError
-
-		// Bad dependency
-		if mgo.IsDup(err) {
-			status = http.StatusBadRequest
-		}
-		jsonError(w, fmt.Sprintf("announce tournament has failed: %v", err), status)
+		jsonError(w, fmt.Sprintf("announce tournament has failed: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -99,14 +81,8 @@ func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.s.JoinTournament(tournamentID, playerID); err != nil {
-		status := http.StatusInternalServerError
-
-		// Bad dependency
-		if err == mgo.ErrNotFound {
-			status = http.StatusNotFound
-		}
 		jsonError(w, fmt.Sprintf("join to tournament id %d of player id %d has failed: %v",
-			tournamentID, playerID, err), status)
+			tournamentID, playerID, err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -121,13 +97,7 @@ func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.s.EndTournament(tournamentID); err != nil {
-		status := http.StatusInternalServerError
-
-		// Bad dependency
-		if err == mgo.ErrNotFound {
-			status = http.StatusNotFound
-		}
-		jsonError(w, fmt.Sprintf("end tournament id %d has failed: %v", tournamentID, err), status)
+		jsonError(w, fmt.Sprintf("end tournament id %d has failed: %v", tournamentID, err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -143,13 +113,7 @@ func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
 
 	winner, err := a.s.ResultTournament(tournamentID)
 	if err != nil {
-		status := http.StatusInternalServerError
-
-		// Bad dependency
-		if err == mgo.ErrNotFound {
-			status = http.StatusNotFound
-		}
-		jsonError(w, fmt.Sprintf("get result of tournament id %d has failed: %v", tournamentID, err), status)
+		jsonError(w, fmt.Sprintf("get result of tournament id %d has failed: %v", tournamentID, err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -165,13 +129,7 @@ func (a API) Balance(w http.ResponseWriter, r *http.Request) {
 
 	b, err := a.s.Balance(playerID)
 	if err != nil {
-		status := http.StatusInternalServerError
-
-		// Bad dependency
-		if err == mgo.ErrNotFound {
-			status = http.StatusNotFound
-		}
-		jsonError(w, fmt.Sprintf("load balance has failed: %v", err), status)
+		jsonError(w, fmt.Sprintf("load balance has failed: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
