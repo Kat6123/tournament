@@ -14,21 +14,39 @@ type Tournaments struct {
 func (tc *Tournaments) ByID(tourID int) (*model.Tournament, error) {
 	t := new(model.Tournament)
 	err := tc.FindId(tourID).One(t)
+	if err != nil {
+		return t, constructErr(err, "tournament", tourID)
+	}
 
-	return t, err
+	return t, nil
 }
 
 // Save update tour by id.
 func (tc *Tournaments) Save(t *model.Tournament) error {
-	return tc.UpdateId(t.ID, t)
+	err := tc.UpdateId(t.ID, t)
+	if err != nil {
+		return constructErr(err, "tournament", t.ID)
+	}
+
+	return nil
 }
 
 // Create inserts new tour.
 func (tc *Tournaments) Create(t *model.Tournament) error {
-	return tc.Insert(t)
+	err := tc.Insert(t)
+	if err != nil {
+		return constructErr(err, "tournament", t.ID)
+	}
+
+	return nil
 }
 
 // delete deletes by id.
 func (tc *Tournaments) delete(tourID int) error {
-	return tc.RemoveId(tourID)
+	err := tc.RemoveId(tourID)
+	if err != nil {
+		return constructErr(err, "tournament", tourID)
+	}
+
+	return nil
 }
