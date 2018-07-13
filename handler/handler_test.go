@@ -344,7 +344,7 @@ func TestAPI_ResultTournament(t *testing.T) {
 			name:           "result of first tour",
 			tournamentID:   "1",
 			expectedStatus: http.StatusOK,
-			expectedBody:   `{"playerId":1,"balance":500,"prize":400}`,
+			expectedBody:   `{"playerId":1,"balance":500,"Prize":400}`,
 		},
 		{
 			name:           "wrong tourID param",

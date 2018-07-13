@@ -18,8 +18,8 @@ type Tournament struct {
 
 // Winner contains player and its prize.
 type Winner struct {
-	*Player `json:"player" bson:"player"`
-	Prize   float32 `json:"prize" bson:"prize"`
+	*Player
+	Prize float32
 }
 
 // NewTour create new Tournament based on id and deposit.
