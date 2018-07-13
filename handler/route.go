@@ -51,7 +51,8 @@ func New(s TourService) *API {
 }
 
 // Router returns Router of API instance. It will be initialized after New method is called.
-func (a API) Router() *mux.Router {
+// What better to return mux.Router or http.Handler
+func (a API) Router() http.Handler {
 	return a.r
 }
 
