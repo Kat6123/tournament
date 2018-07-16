@@ -454,33 +454,35 @@ func Test_badQueryStrings(t *testing.T) {
 		name           string
 		url            string
 		qs             string
+		expectedBody   string
 		expectedStatus int
 	}{
 		{
-			name: "wrong playerID param in fund",
-			url:  "/fund",
-			qs:   "?playerID=abra&points=200",
-			// Routing stops all bad requests for query string?
+			name:           "wrong playerID param in fund",
+			url:            "/fund",
+			qs:             "?playerID=abra&points=200",
+			expectedBody:   `{"message":"parse \"playerID\" as int has failed: strconv.Atoi: parsing \"abra\": invalid syntax"}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "wrong points param in fund",
 			qs:             "?playerID=1&points=abra",
+			expectedBody:   `{"message":"parse \"points\" as float32 has failed: strconv.ParseFloat: parsing \"abra\": invalid syntax"}`,
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
 
 	api := API{}
+	fund := chain(api.Fund, queryInt("playerID"), queryFloat32("points"))
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			req, err := http.NewRequest(
 				http.MethodPut, tc.url+tc.qs, nil)
 			require.NoError(t, err, "create test has failed: %v", err)
-
 			w := httptest.NewRecorder()
 
-			api.Fund(w, req)
+			fund(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()
@@ -488,6 +490,7 @@ func Test_badQueryStrings(t *testing.T) {
 			body, err := ioutil.ReadAll(resp.Body)
 			require.NoError(t, err, "couldn't read response body: %v", err)
 
+			assert.Equal(t, tc.expectedBody+"\n", string(body), "body not equal")
 			assert.Equal(t, tc.expectedStatus, resp.StatusCode, "server error: %s", string(body))
 		})
 	}
