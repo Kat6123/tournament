@@ -5,7 +5,7 @@ import (
 	"github.com/kat6123/tournament/errors"
 )
 
-func constructErr(e error, et string, id int) error {
+func ConstructErr(e error, et string, id int) error {
 	var kind errors.Kind
 
 	switch {

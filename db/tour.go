@@ -15,7 +15,7 @@ func (tc *Tournaments) ByID(tourID int) (*model.Tournament, error) {
 	t := new(model.Tournament)
 	err := tc.FindId(tourID).One(t)
 	if err != nil {
-		return t, constructErr(err, "tournament", tourID)
+		return t, ConstructErr(err, "tournament", tourID)
 	}
 
 	return t, nil
@@ -25,7 +25,7 @@ func (tc *Tournaments) ByID(tourID int) (*model.Tournament, error) {
 func (tc *Tournaments) Save(t *model.Tournament) error {
 	err := tc.UpdateId(t.ID, t)
 	if err != nil {
-		return constructErr(err, "tournament", t.ID)
+		return ConstructErr(err, "tournament", t.ID)
 	}
 
 	return nil
@@ -35,7 +35,7 @@ func (tc *Tournaments) Save(t *model.Tournament) error {
 func (tc *Tournaments) Create(t *model.Tournament) error {
 	err := tc.Insert(t)
 	if err != nil {
-		return constructErr(err, "tournament", t.ID)
+		return ConstructErr(err, "tournament", t.ID)
 	}
 
 	return nil
@@ -45,7 +45,7 @@ func (tc *Tournaments) Create(t *model.Tournament) error {
 func (tc *Tournaments) delete(tourID int) error {
 	err := tc.RemoveId(tourID)
 	if err != nil {
-		return constructErr(err, "tournament", tourID)
+		return ConstructErr(err, "tournament", tourID)
 	}
 
 	return nil

@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 
+	"github.com/kat6123/tournament/db"
 	"github.com/kat6123/tournament/logic/mocks"
 	"github.com/kat6123/tournament/model"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,7 @@ func TestService_Take(t *testing.T) {
 		{
 			name:           "load error",
 			ID:             2,
-			expectedErrMsg: "load player with id 2 from db: load failed",
+			expectedErrMsg: "player 2: load: failed",
 		},
 		{
 			name:           "take error",
@@ -45,7 +46,8 @@ func TestService_Take(t *testing.T) {
 	pp.On("ByID", 1).Return(&model.Player{ID: 1, Balance: 300}, nil)
 	pp.On("Save", &model.Player{ID: 1, Balance: 100}).Return(nil)
 
-	pp.On("ByID", 2).Return(nil, fmt.Errorf("load failed"))
+	pp.On("ByID", 2).Return(nil,
+		db.ConstructErr(fmt.Errorf("failed"), "player", 2))
 
 	// Balance less than points to cause take error
 	pp.On("ByID", 3).Return(&model.Player{ID: 3, Balance: 100}, nil)
