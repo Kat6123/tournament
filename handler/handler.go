@@ -10,15 +10,8 @@ import (
 
 // Take handler takes player points.
 func (a API) Take(w http.ResponseWriter, r *http.Request) {
-	playerID, err := getIntQueryParam("playerID", w, r)
-	if err != nil {
-		return
-	}
-
-	points, err := getFloat32QueryParam("points", w, r)
-	if err != nil {
-		return
-	}
+	playerID := intFromContext(r.Context(), "playerID")
+	points := float32FromContext(r.Context(), "points")
 
 	if err := a.s.Take(playerID, points); err != nil {
 		status := http.StatusInternalServerError
@@ -36,15 +29,8 @@ func (a API) Take(w http.ResponseWriter, r *http.Request) {
 
 // Fund handler funds points to player.
 func (a API) Fund(w http.ResponseWriter, r *http.Request) {
-	playerID, err := getIntQueryParam("playerID", w, r)
-	if err != nil {
-		return
-	}
-
-	points, err := getFloat32QueryParam("points", w, r)
-	if err != nil {
-		return
-	}
+	playerID := intFromContext(r.Context(), "playerID")
+	points := float32FromContext(r.Context(), "points")
 
 	if err := a.s.Fund(playerID, points); err != nil {
 		status := http.StatusInternalServerError
@@ -62,15 +48,8 @@ func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 
 // AnnounceTournament handler announces a new tournament.
 func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID, err := getIntQueryParam("tournamentID", w, r)
-	if err != nil {
-		return
-	}
-
-	deposit, err := getFloat32QueryParam("deposit", w, r)
-	if err != nil {
-		return
-	}
+	tournamentID := intFromContext(r.Context(), "tournamentID")
+	deposit := float32FromContext(r.Context(), "deposit")
 
 	if err := a.s.AnnounceTournament(tournamentID, deposit); err != nil {
 		status := http.StatusInternalServerError
@@ -88,15 +67,8 @@ func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 
 // JoinTournament handler joins player to tour.
 func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID, err := getIntQueryParam("tournamentID", w, r)
-	if err != nil {
-		return
-	}
-
-	playerID, err := getIntQueryParam("playerID", w, r)
-	if err != nil {
-		return
-	}
+	playerID := intFromContext(r.Context(), "playerID")
+	tournamentID := intFromContext(r.Context(), "tournamentID")
 
 	if err := a.s.JoinTournament(tournamentID, playerID); err != nil {
 		status := http.StatusInternalServerError
@@ -115,10 +87,7 @@ func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 
 // EndTournament handler ends the tour.
 func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID, err := getIntQueryParam("tournamentID", w, r)
-	if err != nil {
-		return
-	}
+	tournamentID := intFromContext(r.Context(), "tournamentID")
 
 	if err := a.s.EndTournament(tournamentID); err != nil {
 		status := http.StatusInternalServerError
@@ -136,10 +105,7 @@ func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 
 // ResultTournament handler returns the result of the tour.
 func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID, err := getIntQueryParam("tournamentID", w, r)
-	if err != nil {
-		return
-	}
+	tournamentID := intFromContext(r.Context(), "tournamentID")
 
 	winner, err := a.s.ResultTournament(tournamentID)
 	if err != nil {
@@ -158,10 +124,7 @@ func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
 
 // Balance handler returns the balance of the tour.
 func (a API) Balance(w http.ResponseWriter, r *http.Request) {
-	playerID, err := getIntQueryParam("playerID", w, r)
-	if err != nil {
-		return
-	}
+	playerID := intFromContext(r.Context(), "playerID")
 
 	b, err := a.s.Balance(playerID)
 	if err != nil {
