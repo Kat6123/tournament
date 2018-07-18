@@ -1,26 +1,26 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/globalsign/mgo"
 	"github.com/kat6123/tournament/errors"
 )
 
-func ConstructErr(e error, et string, id int) error {
+func dbError(err error) error {
 	var kind errors.Kind
 
 	switch {
-	case e == mgo.ErrNotFound:
+	case err == mgo.ErrNotFound:
 		kind = errors.NotFound
-	case mgo.IsDup(e):
+	case mgo.IsDup(err):
 		kind = errors.Duplicate
 	default:
 		kind = errors.Other
 	}
 
-	return &errors.TourError{
-		ID:     id,
-		Entity: et,
-		Kind:   kind,
-		Err:    e,
+	return &errors.Error{
+		Kind: kind,
+		Err:  fmt.Errorf("database: %v", err),
 	}
 }

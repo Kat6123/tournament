@@ -1,0 +1,7 @@
+db:
+  url: 'localhost:27017'
+  db: tours
+  tour collection: tours
+  player collection: players
+port: 3001
+debug: 0

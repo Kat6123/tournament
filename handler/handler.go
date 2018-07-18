@@ -15,7 +15,7 @@ func (a API) Take(w http.ResponseWriter, r *http.Request) {
 	points := ctx.Value(takeKey("points")).(float32)
 
 	if err := a.s.Take(playerID, points); err != nil {
-		jsonError(w, fmt.Sprintf("take points has failed: %v", err), errors.HTTPStatus(err))
+		jsonError(w, fmt.Sprintf("controller take: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -29,7 +29,7 @@ func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 	points := ctx.Value(fundKey("points")).(float32)
 
 	if err := a.s.Fund(playerID, points); err != nil {
-		jsonError(w, fmt.Sprintf("fund points has failed: %v", err), errors.HTTPStatus(err))
+		jsonError(w, fmt.Sprintf("controller fund: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -43,7 +43,7 @@ func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 	deposit := ctx.Value(announceKey("deposit")).(float32)
 
 	if err := a.s.AnnounceTournament(tournamentID, deposit); err != nil {
-		jsonError(w, fmt.Sprintf("announce tournament has failed: %v", err), errors.HTTPStatus(err))
+		jsonError(w, fmt.Sprintf("controller announce: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -57,8 +57,7 @@ func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID := ctx.Value(joinKey("tournamentID")).(int)
 
 	if err := a.s.JoinTournament(tournamentID, playerID); err != nil {
-		jsonError(w, fmt.Sprintf("join to tournament id %d of player id %d has failed: %v",
-			tournamentID, playerID, err), errors.HTTPStatus(err))
+		jsonError(w, fmt.Sprintf("controller join: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -70,7 +69,7 @@ func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID := r.Context().Value(endKey("tournamentID")).(int)
 
 	if err := a.s.EndTournament(tournamentID); err != nil {
-		jsonError(w, fmt.Sprintf("end tournament id %d has failed: %v", tournamentID, err), errors.HTTPStatus(err))
+		jsonError(w, fmt.Sprintf("controller end: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -83,7 +82,7 @@ func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
 
 	winner, err := a.s.ResultTournament(tournamentID)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("get result of tournament id %d has failed: %v", tournamentID, err), errors.HTTPStatus(err))
+		jsonError(w, fmt.Sprintf("controller result: %v", err), errors.HTTPStatus(err))
 		return
 	}
 
@@ -96,7 +95,7 @@ func (a API) Balance(w http.ResponseWriter, r *http.Request) {
 
 	b, err := a.s.Balance(playerID)
 	if err != nil {
-		jsonError(w, fmt.Sprintf("load balance has failed: %v", err), errors.HTTPStatus(err))
+		jsonError(w, fmt.Sprintf("controller balance: %v", err), errors.HTTPStatus(err))
 		return
 	}
 

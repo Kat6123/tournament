@@ -15,7 +15,7 @@ func (pc *Players) ByID(playerID int) (*model.Player, error) {
 	p := new(model.Player)
 	err := pc.FindId(playerID).One(p)
 	if err != nil {
-		return p, ConstructErr(err, "player", playerID)
+		return p, dbError(err)
 	}
 
 	return p, nil
@@ -25,7 +25,7 @@ func (pc *Players) ByID(playerID int) (*model.Player, error) {
 func (pc *Players) Save(p *model.Player) error {
 	err := pc.UpdateId(p.ID, &p)
 	if err != nil {
-		return ConstructErr(err, "player", p.ID)
+		return dbError(err)
 	}
 
 	return nil
@@ -35,7 +35,7 @@ func (pc *Players) Save(p *model.Player) error {
 func (pc *Players) delete(playerID int) error {
 	err := pc.RemoveId(playerID)
 	if err != nil {
-		return ConstructErr(err, "player", playerID)
+		return dbError(err)
 	}
 
 	return nil
@@ -45,7 +45,7 @@ func (pc *Players) delete(playerID int) error {
 func (pc *Players) create(p *model.Player) error {
 	err := pc.Insert(p)
 	if err != nil {
-		return ConstructErr(err, "player", p.ID)
+		return dbError(err)
 	}
 
 	return nil

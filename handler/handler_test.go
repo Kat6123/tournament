@@ -2,14 +2,13 @@ package handler
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"io/ioutil"
-
 	"github.com/gavv/httpexpect"
-	"github.com/globalsign/mgo"
+	"github.com/kat6123/tournament/errors"
 	"github.com/kat6123/tournament/handler/mocks"
 	"github.com/kat6123/tournament/model"
 	"github.com/stretchr/testify/assert"
@@ -52,22 +51,34 @@ func TestAPI_Take(t *testing.T) {
 			points:   "200",
 			// Is it an internal error? May be bad request?
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"message":"take points has failed: insufficient funds"}`,
+			expectedBody:   `{"message":"controller take: player 2: insufficient funds"}`,
 		},
 		{
 			name:           "not found error",
 			playerID:       "353",
 			points:         "200",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   `{"message":"take points has failed: not found"}`,
+			expectedBody:   `{"message":"controller take: player 353: load: not found"}`,
 		},
 	}
 
 	ts := new(mocks.TourService)
 	defer ts.AssertExpectations(t)
 	ts.On("Take", 1, float32(200)).Return(nil)
-	ts.On("Take", 2, float32(200)).Return(fmt.Errorf("insufficient funds"))
-	ts.On("Take", 353, float32(200)).Return(mgo.ErrNotFound)
+	ts.On("Take", 2, float32(200)).Return(
+		&errors.Error{
+			Kind:   errors.Other,
+			Err:    fmt.Errorf("insufficient funds"),
+			Entity: "player",
+			ID:     2,
+		})
+	ts.On("Take", 353, float32(200)).Return(
+		&errors.Error{
+			Kind:   errors.NotFound,
+			Err:    fmt.Errorf("load: not found"),
+			Entity: "player",
+			ID:     353,
+		})
 
 	server := httptest.NewServer(
 		New(ts).Router())
@@ -107,22 +118,35 @@ func TestAPI_Fund(t *testing.T) {
 			points:   "200",
 			// Is it an internal error? May be bad request?
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"message":"fund points has failed: fund error"}`,
+			expectedBody:   `{"message":"controller fund: player 2: fund error"}`,
 		},
 		{
 			name:           "not found error",
 			playerID:       "353",
 			points:         "200",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   `{"message":"fund points has failed: not found"}`,
+			expectedBody:   `{"message":"controller fund: player 353: load: not found"}`,
 		},
 	}
 
 	ts := new(mocks.TourService)
 	defer ts.AssertExpectations(t)
 	ts.On("Fund", 1, float32(200)).Return(nil)
-	ts.On("Fund", 2, float32(200)).Return(fmt.Errorf("fund error"))
-	ts.On("Fund", 353, float32(200)).Return(mgo.ErrNotFound)
+	ts.On("Fund", 2, float32(200)).Return(
+		&errors.Error{
+			Kind:   errors.Other,
+			Err:    fmt.Errorf("fund error"),
+			Entity: "player",
+			ID:     2,
+		})
+
+	ts.On("Fund", 353, float32(200)).Return(
+		&errors.Error{
+			Kind:   errors.NotFound,
+			Err:    fmt.Errorf("load: not found"),
+			Entity: "player",
+			ID:     353,
+		})
 
 	server := httptest.NewServer(
 		New(ts).Router())
@@ -175,23 +199,34 @@ func TestAPI_AnnounceTournament(t *testing.T) {
 			tournamentID:   "2",
 			points:         "200",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"message":"announce tournament has failed: announce error"}`,
+			expectedBody:   `{"message":"controller announce: tour 2: announce error"}`,
 		},
 		{
 			name:           "dup error",
 			tournamentID:   "353",
 			points:         "200",
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   `{"message":"announce tournament has failed: duplicate was found"}`,
+			expectedBody:   `{"message":"controller announce: tour 353: duplicate was found"}`,
 		},
 	}
 
 	ts := new(mocks.TourService)
 	defer ts.AssertExpectations(t)
 	ts.On("AnnounceTournament", 1, float32(200)).Return(nil)
-	ts.On("AnnounceTournament", 2, float32(200)).Return(fmt.Errorf("announce error"))
+	ts.On("AnnounceTournament", 2, float32(200)).Return(
+		&errors.Error{
+			Kind:   errors.Other,
+			Err:    fmt.Errorf("announce error"),
+			Entity: "tour",
+			ID:     2,
+		})
 	ts.On("AnnounceTournament", 353, float32(200)).Return(
-		&mgo.QueryError{Code: 11000, Message: "duplicate was found"})
+		&errors.Error{
+			Kind:   errors.Duplicate,
+			Err:    fmt.Errorf("duplicate was found"),
+			Entity: "tour",
+			ID:     353,
+		})
 
 	server := httptest.NewServer(
 		New(ts).Router())
@@ -244,22 +279,34 @@ func TestAPI_JoinTournament(t *testing.T) {
 			tournamentID:   "2",
 			playerID:       "3",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"message":"join to tournament id 2 of player id 3 has failed: join error"}`,
+			expectedBody:   `{"message":"controller join: player 2: join error"}`,
 		},
 		{
 			name:           "not found error",
 			tournamentID:   "3",
 			playerID:       "4",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   `{"message":"join to tournament id 3 of player id 4 has failed: not found"}`,
+			expectedBody:   `{"message":"controller join: tour 4: not found"}`,
 		},
 	}
 
 	ts := new(mocks.TourService)
 	defer ts.AssertExpectations(t)
 	ts.On("JoinTournament", 1, 2).Return(nil)
-	ts.On("JoinTournament", 2, 3).Return(fmt.Errorf("join error"))
-	ts.On("JoinTournament", 3, 4).Return(mgo.ErrNotFound)
+	ts.On("JoinTournament", 2, 3).Return(
+		&errors.Error{
+			Kind:   errors.Other,
+			Err:    fmt.Errorf("join error"),
+			Entity: "player",
+			ID:     2,
+		})
+	ts.On("JoinTournament", 3, 4).Return(
+		&errors.Error{
+			Kind:   errors.NotFound,
+			Err:    fmt.Errorf("not found"),
+			Entity: "tour",
+			ID:     4,
+		})
 
 	server := httptest.NewServer(
 		New(ts).Router())
@@ -301,21 +348,33 @@ func TestAPI_EndTournament(t *testing.T) {
 			name:           "end error",
 			tournamentID:   "2",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"message":"end tournament id 2 has failed: end error"}`,
+			expectedBody:   `{"message":"controller end: tour 2: end error"}`,
 		},
 		{
 			name:           "not found error",
 			tournamentID:   "3",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   `{"message":"end tournament id 3 has failed: not found"}`,
+			expectedBody:   `{"message":"controller end: tour 3: not found"}`,
 		},
 	}
 
 	ts := new(mocks.TourService)
 	defer ts.AssertExpectations(t)
 	ts.On("EndTournament", 1).Return(nil)
-	ts.On("EndTournament", 2).Return(fmt.Errorf("end error"))
-	ts.On("EndTournament", 3).Return(mgo.ErrNotFound)
+	ts.On("EndTournament", 2).Return(
+		&errors.Error{
+			Kind:   errors.Other,
+			Err:    fmt.Errorf("end error"),
+			Entity: "tour",
+			ID:     2,
+		})
+	ts.On("EndTournament", 3).Return(
+		&errors.Error{
+			Kind:   errors.NotFound,
+			Err:    fmt.Errorf("not found"),
+			Entity: "tour",
+			ID:     3,
+		})
 
 	server := httptest.NewServer(
 		New(ts).Router())
@@ -356,13 +415,13 @@ func TestAPI_ResultTournament(t *testing.T) {
 			name:           "result error",
 			tournamentID:   "2",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"message":"get result of tournament id 2 has failed: end error"}`,
+			expectedBody:   `{"message":"controller result: tour 2: result error"}`,
 		},
 		{
 			name:           "not found error",
 			tournamentID:   "3",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   `{"message":"get result of tournament id 3 has failed: not found"}`,
+			expectedBody:   `{"message":"controller result: tour 3: not found"}`,
 		},
 	}
 
@@ -374,9 +433,21 @@ func TestAPI_ResultTournament(t *testing.T) {
 			Prize:  400,
 		}, nil)
 	ts.On("ResultTournament", 2).Return(
-		nil, fmt.Errorf("end error"))
+		nil,
+		&errors.Error{
+			Kind:   errors.Other,
+			Err:    fmt.Errorf("result error"),
+			Entity: "tour",
+			ID:     2,
+		})
 	ts.On("ResultTournament", 3).Return(
-		nil, mgo.ErrNotFound)
+		nil,
+		&errors.Error{
+			Kind:   errors.NotFound,
+			Err:    fmt.Errorf("not found"),
+			Entity: "tour",
+			ID:     3,
+		})
 
 	server := httptest.NewServer(
 		New(ts).Router())
@@ -417,21 +488,33 @@ func TestAPI_Balance(t *testing.T) {
 			name:           "balance error",
 			playerID:       "2",
 			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"message":"load balance has failed: balance error"}`,
+			expectedBody:   `{"message":"controller balance: player 2: error"}`,
 		},
 		{
 			name:           "not found error",
 			playerID:       "3",
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   `{"message":"load balance has failed: not found"}`,
+			expectedBody:   `{"message":"controller balance: player 3: not found"}`,
 		},
 	}
 
 	ts := new(mocks.TourService)
 	defer ts.AssertExpectations(t)
 	ts.On("Balance", 1).Return(float32(300), nil)
-	ts.On("Balance", 2).Return(float32(0), fmt.Errorf("balance error"))
-	ts.On("Balance", 3).Return(float32(0), mgo.ErrNotFound)
+	ts.On("Balance", 2).Return(float32(0),
+		&errors.Error{
+			Kind:   errors.Other,
+			Err:    fmt.Errorf("error"),
+			Entity: "player",
+			ID:     2,
+		})
+	ts.On("Balance", 3).Return(float32(0),
+		&errors.Error{
+			Kind:   errors.NotFound,
+			Err:    fmt.Errorf("not found"),
+			Entity: "player",
+			ID:     3,
+		})
 
 	server := httptest.NewServer(
 		New(ts).Router())

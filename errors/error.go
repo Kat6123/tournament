@@ -18,8 +18,8 @@ type (
 	// Kind of error.
 	Kind int
 
-	// TourError is a special type of error which is used by tour microservice.
-	TourError struct {
+	// Error is a special type of error which is used by tour microservice.
+	Error struct {
 		ID     int
 		Kind   Kind
 		Entity string
@@ -27,14 +27,14 @@ type (
 	}
 )
 
-func (e *TourError) Error() string {
+func (e *Error) Error() string {
 	return fmt.Sprintf("%s %d: %s", e.Entity, e.ID, e.Err)
 }
 
 // Wrap return new error which was wrapped by s string.
-// If e is of type TourError then Err field will be wrapped.
+// If e is of type Error then Err field will be wrapped.
 func Wrap(e error, s string) error {
-	t, ok := e.(*TourError)
+	t, ok := e.(*Error)
 	if ok {
 		t.Err = fmt.Errorf("%s: %v", s, t.Err)
 		return t
@@ -46,7 +46,7 @@ func Wrap(e error, s string) error {
 
 // HTTPStatus return status based on error type.
 func HTTPStatus(e error) int {
-	t, ok := e.(*TourError)
+	t, ok := e.(*Error)
 	if ok {
 		switch t.Kind {
 		case NotFound:
