@@ -473,7 +473,7 @@ func Test_badQueryStrings(t *testing.T) {
 	}
 
 	api := API{}
-	fund := chain(api.Fund, queryInt("playerID"), queryFloat32("points"))
+	fund := chain(api.Fund, queryFund())
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {

@@ -10,8 +10,9 @@ import (
 
 // Take handler takes player points.
 func (a API) Take(w http.ResponseWriter, r *http.Request) {
-	playerID := intFromContext(r.Context(), "playerID")
-	points := float32FromContext(r.Context(), "points")
+	ctx := r.Context()
+	playerID := ctx.Value(takeKey("playerID")).(int)
+	points := ctx.Value(takeKey("points")).(float32)
 
 	if err := a.s.Take(playerID, points); err != nil {
 		jsonError(w, fmt.Sprintf("take points has failed: %v", err), errors.HTTPStatus(err))
@@ -23,8 +24,9 @@ func (a API) Take(w http.ResponseWriter, r *http.Request) {
 
 // Fund handler funds points to player.
 func (a API) Fund(w http.ResponseWriter, r *http.Request) {
-	playerID := intFromContext(r.Context(), "playerID")
-	points := float32FromContext(r.Context(), "points")
+	ctx := r.Context()
+	playerID := ctx.Value(fundKey("playerID")).(int)
+	points := ctx.Value(fundKey("points")).(float32)
 
 	if err := a.s.Fund(playerID, points); err != nil {
 		jsonError(w, fmt.Sprintf("fund points has failed: %v", err), errors.HTTPStatus(err))
@@ -36,8 +38,9 @@ func (a API) Fund(w http.ResponseWriter, r *http.Request) {
 
 // AnnounceTournament handler announces a new tournament.
 func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID := intFromContext(r.Context(), "tournamentID")
-	deposit := float32FromContext(r.Context(), "deposit")
+	ctx := r.Context()
+	tournamentID := ctx.Value(announceKey("tournamentID")).(int)
+	deposit := ctx.Value(announceKey("deposit")).(float32)
 
 	if err := a.s.AnnounceTournament(tournamentID, deposit); err != nil {
 		jsonError(w, fmt.Sprintf("announce tournament has failed: %v", err), errors.HTTPStatus(err))
@@ -49,8 +52,9 @@ func (a API) AnnounceTournament(w http.ResponseWriter, r *http.Request) {
 
 // JoinTournament handler joins player to tour.
 func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
-	playerID := intFromContext(r.Context(), "playerID")
-	tournamentID := intFromContext(r.Context(), "tournamentID")
+	ctx := r.Context()
+	playerID := ctx.Value(joinKey("playerID")).(int)
+	tournamentID := ctx.Value(joinKey("tournamentID")).(int)
 
 	if err := a.s.JoinTournament(tournamentID, playerID); err != nil {
 		jsonError(w, fmt.Sprintf("join to tournament id %d of player id %d has failed: %v",
@@ -63,7 +67,7 @@ func (a API) JoinTournament(w http.ResponseWriter, r *http.Request) {
 
 // EndTournament handler ends the tour.
 func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID := intFromContext(r.Context(), "tournamentID")
+	tournamentID := r.Context().Value(endKey("tournamentID")).(int)
 
 	if err := a.s.EndTournament(tournamentID); err != nil {
 		jsonError(w, fmt.Sprintf("end tournament id %d has failed: %v", tournamentID, err), errors.HTTPStatus(err))
@@ -75,7 +79,7 @@ func (a API) EndTournament(w http.ResponseWriter, r *http.Request) {
 
 // ResultTournament handler returns the result of the tour.
 func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID := intFromContext(r.Context(), "tournamentID")
+	tournamentID := r.Context().Value(resultKey("tournamentID")).(int)
 
 	winner, err := a.s.ResultTournament(tournamentID)
 	if err != nil {
@@ -88,7 +92,7 @@ func (a API) ResultTournament(w http.ResponseWriter, r *http.Request) {
 
 // Balance handler returns the balance of the tour.
 func (a API) Balance(w http.ResponseWriter, r *http.Request) {
-	playerID := intFromContext(r.Context(), "playerID")
+	playerID := r.Context().Value(balanceKey("playerID")).(int)
 
 	b, err := a.s.Balance(playerID)
 	if err != nil {

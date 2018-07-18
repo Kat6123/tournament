@@ -63,29 +63,29 @@ func (a API) initRouter() {
 			"points", "{points:"+floatRegex+"}").
 		Methods(http.MethodPut).
 		Subrouter()
-	p.HandleFunc("/take", chain(a.Take, queryInt("playerID"), queryFloat32("points")))
-	p.HandleFunc("/fund", chain(a.Fund, queryInt("playerID"), queryFloat32("points")))
+	p.HandleFunc("/take", chain(a.Take, queryTake()))
+	p.HandleFunc("/fund", chain(a.Fund, queryFund()))
 
 	t := a.r.
 		Queries("tournamentID", "{id:"+intRegex+"}").
 		Subrouter()
 	t.HandleFunc("/announceTournament",
-		chain(a.AnnounceTournament, queryInt("tournamentID"), queryFloat32("deposit"))).
+		chain(a.AnnounceTournament, queryAnnounce())).
 		Queries("deposit", "{deposit:"+floatRegex+"}").
 		Methods(http.MethodPut)
 	t.HandleFunc("/joinTournament",
-		chain(a.JoinTournament, queryInt("playerID", "tournamentID"))).
+		chain(a.JoinTournament, queryJoin())).
 		Queries("playerID", "{playerID:"+intRegex+"}").
 		Methods(http.MethodPut)
 	t.HandleFunc("/endTournament",
-		chain(a.EndTournament, queryInt("tournamentID"))).
+		chain(a.EndTournament, queryEnd())).
 		Methods(http.MethodPut)
 	t.HandleFunc("/resultTournament",
-		chain(a.ResultTournament, queryInt("tournamentID"))).
+		chain(a.ResultTournament, queryResult())).
 		Methods(http.MethodGet)
 
 	a.r.HandleFunc("/balance",
-		chain(a.Balance, queryInt("playerID"))).
+		chain(a.Balance, queryBalance())).
 		Queries("playerID", "{id:"+intRegex+"}").
 		Methods(http.MethodGet)
 }

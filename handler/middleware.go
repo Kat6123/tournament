@@ -6,52 +6,157 @@ import (
 )
 
 type (
-	intKey   string
-	floatKey string
+	takeKey     string
+	fundKey     string
+	announceKey string
+	joinKey     string
+	endKey      string
+	resultKey   string
+	balanceKey  string
 
 	middleware func(http.HandlerFunc) http.HandlerFunc
 )
 
-func intFromContext(ctx context.Context, param string) int {
-	return ctx.Value(intKey(param)).(int)
-}
-
-func float32FromContext(ctx context.Context, param string) float32 {
-	return ctx.Value(floatKey(param)).(float32)
-}
-
-func queryInt(params ...string) middleware {
+func queryTake() middleware {
 	return func(f http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			for i := range params {
-				val, err := getIntQueryParam(params[i], w, r)
-				if err != nil {
-					jsonError(w, err.Error(), http.StatusBadRequest)
-					return
-				}
 
-				ctx = context.WithValue(ctx, intKey(params[i]), val)
+			i, err := getIntQueryParam("playerID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
 			}
+			ctx = context.WithValue(ctx, takeKey("playerID"), i)
+
+			p, err := getFloat32QueryParam("points", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, takeKey("points"), p)
 
 			f(w, r.WithContext(ctx))
 		}
 	}
 }
 
-func queryFloat32(params ...string) middleware {
+func queryFund() middleware {
 	return func(f http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			for i := range params {
-				val, err := getFloat32QueryParam(params[i], w, r)
-				if err != nil {
-					jsonError(w, err.Error(), http.StatusBadRequest)
-					return
-				}
 
-				ctx = context.WithValue(ctx, floatKey(params[i]), val)
+			i, err := getIntQueryParam("playerID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
 			}
+			ctx = context.WithValue(ctx, fundKey("playerID"), i)
+
+			p, err := getFloat32QueryParam("points", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, fundKey("points"), p)
+
+			f(w, r.WithContext(ctx))
+		}
+	}
+}
+
+func queryAnnounce() middleware {
+	return func(f http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			i, err := getIntQueryParam("tournamentID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, announceKey("tournamentID"), i)
+
+			p, err := getFloat32QueryParam("deposit", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, announceKey("deposit"), p)
+
+			f(w, r.WithContext(ctx))
+		}
+	}
+}
+func queryJoin() middleware {
+	return func(f http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			i, err := getIntQueryParam("tournamentID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, joinKey("tournamentID"), i)
+
+			i, err = getIntQueryParam("playerID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, joinKey("playerID"), i)
+
+			f(w, r.WithContext(ctx))
+		}
+	}
+}
+
+func queryEnd() middleware {
+	return func(f http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			i, err := getIntQueryParam("tournamentID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, endKey("tournamentID"), i)
+
+			f(w, r.WithContext(ctx))
+		}
+	}
+}
+
+func queryResult() middleware {
+	return func(f http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			i, err := getIntQueryParam("tournamentID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, resultKey("tournamentID"), i)
+
+			f(w, r.WithContext(ctx))
+		}
+	}
+}
+
+func queryBalance() middleware {
+	return func(f http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			i, err := getIntQueryParam("playerID", w, r)
+			if err != nil {
+				jsonError(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			ctx = context.WithValue(ctx, balanceKey("playerID"), i)
 
 			f(w, r.WithContext(ctx))
 		}
