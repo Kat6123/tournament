@@ -11,10 +11,7 @@ import (
 )
 
 func main() {
-	conf, err := config.Get()
-	if err != nil {
-		log.Fatalf("parse config has failed: %v", err)
-	}
+	conf := config.Get()
 
 	pc, tc, err := db.New(conf.DB.URL, conf.DB.DB,
 		conf.DB.TourCollection, conf.DB.PlayerCollection)
