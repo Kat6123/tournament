@@ -4,27 +4,20 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/kat6123/tournament/config"
 	"github.com/kat6123/tournament/db"
 	"github.com/kat6123/tournament/handler"
 	"github.com/kat6123/tournament/logic"
 )
 
 func main() {
-	//conf, err := config.Get()
-	//if err != nil{
-	//	log.Fatalf("parse config has failed: %v", err)
-	//}
-	//pc, tc, err := db.New(conf.URL, conf.DB)
-	//if err != nil {
-	//	log.Fatalf("dial with db has failed: %v", err)
-	//}
-	//
-	//service := logic.New(logic.Builder{PP: pc, TP: tc})
-	//api := handler.New(service)
-	//
-	//log.Fatal(http.ListenAndServe(":3001", api.Router()))
+	conf, err := config.Get()
+	if err != nil {
+		log.Fatalf("parse config has failed: %v", err)
+	}
 
-	pc, tc, err := db.New(":27017", "tours")
+	pc, tc, err := db.New(conf.DB.URL, conf.DB.DB,
+		conf.DB.TourCollection, conf.DB.PlayerCollection)
 	if err != nil {
 		log.Fatalf("dial with db has failed: %v", err)
 	}
@@ -32,5 +25,5 @@ func main() {
 	service := logic.New(logic.Builder{PP: pc, TP: tc})
 	api := handler.New(service)
 
-	log.Fatal(http.ListenAndServe(":3001", api.Router()))
+	log.Fatal(http.ListenAndServe(":"+conf.Port, api.Router()))
 }
