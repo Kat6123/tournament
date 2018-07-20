@@ -9,12 +9,14 @@ import (
 )
 
 const (
-	URL = ":27017"
-	DB  = "test"
+	URL     = ":27017"
+	DB      = "test"
+	tours   = "tours"
+	players = "players"
 )
 
 func TestChangePlayer(t *testing.T) {
-	pc, _, err := New(URL, DB)
+	pc, _, err := New(URL, DB, tours, players)
 	require.NoError(t, err, "dial with db has failed: %v", err)
 
 	defer func() {

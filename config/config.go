@@ -1,68 +1,65 @@
 package config
 
-import (
-	"flag"
-	"fmt"
-	"io/ioutil"
-	"os"
+import "flag"
 
-	"github.com/kat6123/tournament/log"
-	"gopkg.in/yaml.v2"
-)
+func merge(c1, c2 Configuration) Configuration {
+	c := c1
 
-func fromYAML(path string) (*Configuration, error) {
-	c := new(Configuration)
-
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return c, fmt.Errorf("config from yaml: read file %q: %v", path, err)
+	if c2.DB.URL != "" {
+		c.DB.URL = c2.DB.URL
 	}
 
-	err = yaml.Unmarshal([]byte(content), c)
-	if err != nil {
-		return c, fmt.Errorf("config from yaml: unmarshal: %v", err)
+	if c2.DB.DB != "" {
+		c.DB.DB = c2.DB.DB
 	}
 
-	return c, nil
+	if c2.DB.TourCollection != "" {
+		c.DB.TourCollection = c2.DB.TourCollection
+	}
+
+	if c2.DB.PlayerCollection != "" {
+		c.DB.PlayerCollection = c2.DB.PlayerCollection
+	}
+
+	if c2.Port != "" {
+		c.Port = c2.Port
+	}
+
+	// What if set 0 level??
+	if c2.Debug > c.Debug {
+		c.Debug = c2.Debug
+	}
+
+	return c
 }
 
-func fromEnv() (*Configuration, error) {
-	c := new(Configuration)
+var yamlPath = flag.String("yaml", "", "path to yaml file")
 
-	c.DB.URL = os.Getenv("DBURL")
-	c.DB.DB = os.Getenv("DB")
-	c.DB.TourCollection = os.Getenv("TOURS")
-	c.DB.PlayerCollection = os.Getenv("PLAYERS")
-	c.Port = os.Getenv("PORT")
+func Get() Configuration {
+	conf := Default()
+	flag.Parse()
 
-	d, ok := os.LookupEnv("DEBUG")
-	if ok {
-		err := c.Debug.Set(d)
-		if err != nil {
-			return nil, fmt.Errorf("config DEBUG from env: %v", err)
-		}
+	flags, err := fromFlags()
+	if err != nil {
+		// write to log
+	} else {
+		conf = merge(conf, *flags)
 	}
 
-	return c, nil
-}
+	// default value "" causes error in log each time?
+	yaml, err := fromYAML(*yamlPath)
+	if err != nil {
+		// write to log
+	} else {
+		conf = merge(conf, *yaml)
+	}
 
-var (
-	dbURL      = flag.String("dburl", defaultConfig.DB.URL, "database url for connection")
-	db         = flag.String("db", defaultConfig.DB.DB, "database name")
-	tours      = flag.String("tours", defaultConfig.DB.TourCollection, "tour collection name")
-	players    = flag.String("players", defaultConfig.DB.PlayerCollection, "player collection name")
-	port       = flag.String("port", defaultConfig.Port, "port number")
-	debugLevel = log.Flag("debug", defaultConfig.Debug, "log level")
-)
+	env, err := fromEnv()
+	if err != nil {
+		// write to log
+	} else {
+		conf = merge(conf, *env)
+	}
 
-func fromFlags() (*Configuration, error) {
-	c := new(Configuration)
-
-	c.DB.URL = *dbURL
-	c.DB.DB = *db
-	c.DB.TourCollection = *tours
-	c.DB.PlayerCollection = *players
-	c.Port = *port
-	c.Debug = *debugLevel
-	return c, nil
+	return conf
 }
