@@ -7,13 +7,13 @@ import (
 
 // New dials with db and init Players and Tournaments with collections,
 // which are named 'players' and 'tours' accordingly.
-func New(URL string, DB string) (*Players, *Tournaments, error) {
+func New(URL, DB, tours, players string) (*Players, *Tournaments, error) {
 	s, err := mgo.Dial(URL)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return &Players{s.DB(DB).C("players")},
-		&Tournaments{s.DB(DB).C("tours")},
+	return &Players{s.DB(DB).C(players)},
+		&Tournaments{s.DB(DB).C(tours)},
 		nil
 }
