@@ -1,40 +1,16 @@
-package main
+package config
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
-
 	"os"
 
+	"github.com/kat6123/tournament/log"
 	"gopkg.in/yaml.v2"
 )
 
-const (
-	trace logLevel = iota
-	debug
-	info
-	warn
-	// error
-)
-
-type (
-	logLevel int
-
-	dbConfig struct {
-		URL              string `yaml:"url"`
-		DB               string `yaml:"db"`
-		TourCollection   string `yaml:"tour collection"`
-		PlayerCollection string `yaml:"player collection"`
-	}
-
-	Configuration struct {
-		DB    dbConfig
-		Port  int      `yaml:"port"`
-		Debug logLevel `yaml:"level"`
-	}
-)
-
-func ConfigFromYAML(path string) (*Configuration, error) {
+func fromYAML(path string) (*Configuration, error) {
 	c := new(Configuration)
 
 	content, err := ioutil.ReadFile(path)
@@ -50,22 +26,43 @@ func ConfigFromYAML(path string) (*Configuration, error) {
 	return c, nil
 }
 
-func ConfigFromEnv() (*Configuration, error) {
+func fromEnv() (*Configuration, error) {
 	c := new(Configuration)
 
-	os.Getenv("DB")
-	ENV := []string{"DBURL", "DB", "TOURS", "PLAYERS", "PORT", "DEBUG"}
+	c.DB.URL = os.Getenv("DBURL")
+	c.DB.DB = os.Getenv("DB")
+	c.DB.TourCollection = os.Getenv("TOURS")
+	c.DB.PlayerCollection = os.Getenv("PLAYERS")
+	c.Port = os.Getenv("PORT")
 
-	for i := range ENV {
-
+	d, ok := os.LookupEnv("DEBUG")
+	if ok {
+		err := c.Debug.Set(d)
+		if err != nil {
+			return nil, fmt.Errorf("config DEBUG from env: %v", err)
+		}
 	}
+
+	return c, nil
 }
 
-func Get() (*Configuration, error) {
-	return nil, nil
-}
+var (
+	dbURL      = flag.String("dburl", defaultConfig.DB.URL, "database url for connection")
+	db         = flag.String("db", defaultConfig.DB.DB, "database name")
+	tours      = flag.String("tours", defaultConfig.DB.TourCollection, "tour collection name")
+	players    = flag.String("players", defaultConfig.DB.PlayerCollection, "player collection name")
+	port       = flag.String("port", defaultConfig.Port, "port number")
+	debugLevel = log.Flag("debug", defaultConfig.Debug, "log level")
+)
 
-func main() {
-	c, _ := ConfigFromYAML("config.yaml")
-	fmt.Println(c)
+func fromFlags() (*Configuration, error) {
+	c := new(Configuration)
+
+	c.DB.URL = *dbURL
+	c.DB.DB = *db
+	c.DB.TourCollection = *tours
+	c.DB.PlayerCollection = *players
+	c.Port = *port
+	c.Debug = *debugLevel
+	return c, nil
 }
