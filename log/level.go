@@ -7,26 +7,25 @@ import (
 )
 
 const (
-	Trace Level = iota
-	Debug
-	Info
-	Warn
-	Error
+	TraceLevel Level = iota
+	DebugLevel
+	InfoLevel
+	ErrorLevel
 )
 
+// Level is a type of log Level.
 type Level int
 
+// String returns string representation of log level.
 func (l Level) String() string {
 	switch l {
-	case Trace:
+	case TraceLevel:
 		return "trace"
-	case Debug:
+	case DebugLevel:
 		return "debug"
-	case Info:
+	case InfoLevel:
 		return "info"
-	case Warn:
-		return "warn"
-	case Error:
+	case ErrorLevel:
 		return "error"
 	default:
 		return "unknown log level"
@@ -34,32 +33,28 @@ func (l Level) String() string {
 }
 
 // Set parses input string of log level and set value.
-func (l *Level) Set(s string) (err error) {
+func (l *Level) Set(s string) error {
 	i, err := strconv.Atoi(s)
 	if err != nil {
 		return fmt.Errorf("parse level %q as int has failed: %v", s, err)
 	}
 
 	switch Level(i) {
-	case Trace:
-		*l = Trace
+	case TraceLevel:
+		*l = TraceLevel
 		return nil
-	case Debug:
-		*l = Debug
+	case DebugLevel:
+		*l = DebugLevel
 		return nil
-	case Info:
-		*l = Info
+	case InfoLevel:
+		*l = InfoLevel
 		return nil
-	case Warn:
-		*l = Warn
-		return nil
-	case Error:
-		*l = Error
+	case ErrorLevel:
+		*l = ErrorLevel
 		return nil
 	default:
 		return fmt.Errorf("wrong level type %q", i)
 	}
-	return
 }
 
 // Flag defines a log.Level flag with specified name, default value, and usage string.
