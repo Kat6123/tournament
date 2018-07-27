@@ -24,7 +24,7 @@ func TestMerge(t *testing.T) {
 					PlayerCollection: "players",
 				},
 				Port:  "3001",
-				Debug: log.Trace,
+				Debug: log.TraceLevel,
 			},
 			c2: Configuration{},
 			expectedC: Configuration{
@@ -35,7 +35,7 @@ func TestMerge(t *testing.T) {
 					PlayerCollection: "players",
 				},
 				Port:  "3001",
-				Debug: log.Trace,
+				Debug: log.TraceLevel,
 			},
 		},
 		{
@@ -48,7 +48,7 @@ func TestMerge(t *testing.T) {
 					PlayerCollection: "players",
 				},
 				Port:  "3001",
-				Debug: log.Trace,
+				Debug: log.TraceLevel,
 			},
 			c2: Configuration{
 				DB: dbConfig{
@@ -58,7 +58,7 @@ func TestMerge(t *testing.T) {
 					PlayerCollection: "another",
 				},
 				Port:  "10000",
-				Debug: log.Error,
+				Debug: log.ErrorLevel,
 			},
 			expectedC: Configuration{
 				DB: dbConfig{
@@ -68,7 +68,7 @@ func TestMerge(t *testing.T) {
 					PlayerCollection: "another",
 				},
 				Port:  "10000",
-				Debug: log.Error,
+				Debug: log.TraceLevel,
 			},
 		},
 	}

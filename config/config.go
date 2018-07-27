@@ -1,6 +1,10 @@
 package config
 
-import "flag"
+import (
+	"flag"
+
+	"github.com/kat6123/tournament/log"
+)
 
 func merge(c1, c2 Configuration) Configuration {
 	c := c1
@@ -26,7 +30,7 @@ func merge(c1, c2 Configuration) Configuration {
 	}
 
 	// What if set 0 level??
-	if c2.Debug > c.Debug {
+	if c2.Debug < c.Debug {
 		c.Debug = c2.Debug
 	}
 
@@ -41,22 +45,24 @@ func Get() Configuration {
 
 	flags, err := fromFlags()
 	if err != nil {
-		// write to log
+		log.Error("failed initialize configuration from flags: %v", err)
 	} else {
 		conf = merge(conf, *flags)
 	}
 
 	// default value "" causes error in log each time?
-	yaml, err := fromYAML(*yamlPath)
-	if err != nil {
-		// write to log
-	} else {
-		conf = merge(conf, *yaml)
+	if *yamlPath != "" {
+		yaml, err := fromYAML(*yamlPath)
+		if err != nil {
+			log.Error("failed initialize configuration from yaml %s: %v", *yamlPath, err)
+		} else {
+			conf = merge(conf, *yaml)
+		}
 	}
 
 	env, err := fromEnv()
 	if err != nil {
-		// write to log
+		log.Error("failed initialize configuration from environment: %v", err)
 	} else {
 		conf = merge(conf, *env)
 	}

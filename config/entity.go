@@ -10,7 +10,7 @@ var defaultConfig = Configuration{
 		PlayerCollection: "players",
 	},
 	Port:  "3001",
-	Debug: log.Trace,
+	Debug: log.ErrorLevel,
 }
 
 type (

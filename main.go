@@ -7,11 +7,13 @@ import (
 	"github.com/kat6123/tournament/config"
 	"github.com/kat6123/tournament/db"
 	"github.com/kat6123/tournament/handler"
+	tourlog "github.com/kat6123/tournament/log"
 	"github.com/kat6123/tournament/logic"
 )
 
 func main() {
 	conf := config.Get()
+	tourlog.SetLevel(conf.Debug)
 
 	pc, tc, err := db.New(conf.DB.URL, conf.DB.DB,
 		conf.DB.TourCollection, conf.DB.PlayerCollection)
