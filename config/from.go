@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"github.com/kat6123/tournament/log"
 	"gopkg.in/yaml.v2"
@@ -15,7 +16,8 @@ func fromYAML(path string) (*Configuration, error) {
 
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return c, fmt.Errorf("config from yaml: read file %q: %v", path, err)
+		//  TODO you don't need "config from yaml" here
+ 		return c, fmt.Errorf("config from yaml: read file %q: %v", path, err)
 	}
 
 	err = yaml.Unmarshal([]byte(content), c)
@@ -29,7 +31,7 @@ func fromYAML(path string) (*Configuration, error) {
 func fromEnv() (*Configuration, error) {
 	c := new(Configuration)
 
-	c.DB.URL = os.Getenv("DBURL")
+	c.DB.URL = os.Getenv("DBURL") // TODO bad name
 	c.DB.DB = os.Getenv("DB")
 	c.DB.TourCollection = os.Getenv("TOURS")
 	c.DB.PlayerCollection = os.Getenv("PLAYERS")

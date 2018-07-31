@@ -44,10 +44,10 @@ func Get() Configuration {
 	flag.Parse()
 
 	flags, err := fromFlags()
-	if err != nil {
+	if err != nil { // TODO you don't need check an error here
 		log.Error("failed initialize configuration from flags: %v", err)
 	} else {
-		conf = merge(conf, *flags)
+		conf = merge(conf, *flags) // TODO you don't need to merge here
 	}
 
 	// default value "" causes error in log each time?

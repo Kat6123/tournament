@@ -12,9 +12,12 @@ import (
 )
 
 func main() {
+	// TODO find out config libs and apply
 	conf := config.Get()
+	// TODO find out log libs and apply
 	tourlog.SetLevel(conf.Debug)
 
+	// TODO MySQL?
 	pc, tc, err := db.New(conf.DB.URL, conf.DB.DB,
 		conf.DB.TourCollection, conf.DB.PlayerCollection)
 	if err != nil {
