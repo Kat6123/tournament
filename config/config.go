@@ -6,8 +6,8 @@ import (
 	"github.com/kat6123/tournament/log"
 )
 
-func merge(c1, c2 Configuration) Configuration {
-	c := c1
+func merge(c1, c2 *Configuration) Configuration {
+	c := *c1
 
 	if c2.DB.URL != "" {
 		c.DB.URL = c2.DB.URL
@@ -37,26 +37,18 @@ func merge(c1, c2 Configuration) Configuration {
 	return c
 }
 
-var yamlPath = flag.String("yaml", "", "path to yaml file")
-
+// Get returns configuration which was merged after reading from flags, env and yaml if specified.
 func Get() Configuration {
-	conf := Default()
 	flag.Parse()
-
-	flags, err := fromFlags()
-	if err != nil { // TODO you don't need check an error here
-		log.Error("failed initialize configuration from flags: %v", err)
-	} else {
-		conf = merge(conf, *flags) // TODO you don't need to merge here
-	}
+	conf := fromFlags()
 
 	// default value "" causes error in log each time?
 	if *yamlPath != "" {
 		yaml, err := fromYAML(*yamlPath)
 		if err != nil {
-			log.Error("failed initialize configuration from yaml %s: %v", *yamlPath, err)
+			log.Error("failed initialize configuration from yaml %q: %v", *yamlPath, err)
 		} else {
-			conf = merge(conf, *yaml)
+			*conf = merge(conf, yaml)
 		}
 	}
 
@@ -64,8 +56,8 @@ func Get() Configuration {
 	if err != nil {
 		log.Error("failed initialize configuration from environment: %v", err)
 	} else {
-		conf = merge(conf, *env)
+		*conf = merge(conf, env)
 	}
 
-	return conf
+	return *conf
 }

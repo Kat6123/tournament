@@ -48,7 +48,7 @@ func TestMerge(t *testing.T) {
 					PlayerCollection: "players",
 				},
 				Port:  "3001",
-				Debug: log.TraceLevel,
+				Debug: log.ErrorLevel,
 			},
 			c2: Configuration{
 				DB: dbConfig{
@@ -58,7 +58,7 @@ func TestMerge(t *testing.T) {
 					PlayerCollection: "another",
 				},
 				Port:  "10000",
-				Debug: log.ErrorLevel,
+				Debug: log.TraceLevel,
 			},
 			expectedC: Configuration{
 				DB: dbConfig{
@@ -76,7 +76,7 @@ func TestMerge(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			// How I can test that c1 and c2 don't change?
-			gotC := merge(tc.c1, tc.c2)
+			gotC := merge(&tc.c1, &tc.c2)
 
 			assert.Equal(t, tc.expectedC, gotC)
 		})

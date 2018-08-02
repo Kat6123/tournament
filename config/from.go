@@ -22,7 +22,7 @@ func fromYAML(path string) (*Configuration, error) {
 
 	err = yaml.Unmarshal([]byte(content), c)
 	if err != nil {
-		return c, fmt.Errorf("config from yaml: unmarshal: %v", err)
+		return c, fmt.Errorf("unmarshal: %v", err)
 	}
 
 	return c, nil
@@ -57,14 +57,16 @@ var (
 	debugLevel = log.Flag("debug", defaultConfig.Debug, "log level")
 )
 
-func fromFlags() (*Configuration, error) {
-	c := new(Configuration)
+func fromFlags() *Configuration {
+	c := &Configuration{
+		DB: dbConfig{
+			URI:              *dbURI,
+			TourCollection:   *tours,
+			PlayerCollection: *players,
+		},
+		Port:  *port,
+		Debug: *debugLevel,
+	}
 
-	c.DB.URL = *dbURL
-	c.DB.DB = *db
-	c.DB.TourCollection = *tours
-	c.DB.PlayerCollection = *players
-	c.Port = *port
-	c.Debug = *debugLevel
-	return c, nil
+	return c
 }

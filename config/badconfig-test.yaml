@@ -1,0 +1,6 @@
+db:
+  uri: 'mongodb://localhost/tours'
+  tour_collection: tours
+  player_collection
+app_port: 'string but want int'
+log_level: 0
