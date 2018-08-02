@@ -9,7 +9,7 @@ import (
 )
 
 func TestChangeTour(t *testing.T) {
-	_, tc, err := New(URL, DB, tours, players)
+	_, tc, err := New(URL, tours, players)
 	require.NoError(t, err, "dial with db has failed: %v", err)
 
 	defer func() {

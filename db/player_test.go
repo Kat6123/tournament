@@ -9,14 +9,14 @@ import (
 )
 
 const (
-	URL     = ":27017"
-	DB      = "test"
+	// not removed after using
+	URL     = "mongodb://localhost/test"
 	tours   = "tours"
 	players = "players"
 )
 
 func TestChangePlayer(t *testing.T) {
-	pc, _, err := New(URL, DB, tours, players)
+	pc, _, err := New(URL, tours, players)
 	require.NoError(t, err, "dial with db has failed: %v", err)
 
 	defer func() {

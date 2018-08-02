@@ -41,7 +41,7 @@ func fromEnv() (*Configuration, error) {
 	if ok {
 		err := c.Debug.Set(d)
 		if err != nil {
-			return nil, fmt.Errorf("config DEBUG from env: %v", err)
+			return nil, fmt.Errorf("config LOG_LEVEL from env: %v", err)
 		}
 	}
 

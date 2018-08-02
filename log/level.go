@@ -3,7 +3,6 @@ package log
 import (
 	"flag"
 	"fmt"
-	"strconv"
 )
 
 const (
@@ -34,26 +33,26 @@ func (l Level) String() string {
 
 // Set parses input string of log level and set value.
 func (l *Level) Set(s string) error {
-	i, err := strconv.Atoi(s)
-	if err != nil {
-		return fmt.Errorf("parse level %q as int has failed: %v", s, err)
-	}
+	//i, err := strconv.Atoi(s)
+	//if err != nil {
+	//	return fmt.Errorf("parse level %q as int has failed: %v", s, err)
+	//}
 
-	switch Level(i) {
-	case TraceLevel:
+	switch {
+	case s == "trace":
 		*l = TraceLevel
 		return nil
-	case DebugLevel:
+	case s == "debug":
 		*l = DebugLevel
 		return nil
-	case InfoLevel:
+	case s == "info":
 		*l = InfoLevel
 		return nil
-	case ErrorLevel:
+	case s == "error":
 		*l = ErrorLevel
 		return nil
 	default:
-		return fmt.Errorf("wrong level type %q", i)
+		return fmt.Errorf("undefined log level: %s", s)
 	}
 }
 

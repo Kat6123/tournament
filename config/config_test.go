@@ -82,3 +82,18 @@ func TestMerge(t *testing.T) {
 		})
 	}
 }
+
+func TestGet(t *testing.T) {
+	*yamlPath = "config-test.yaml"
+	expectedConfig := Configuration{
+		DB: dbConfig{
+			URI:              "mongodb://localhost/tours",
+			TourCollection:   "tours",
+			PlayerCollection: "players",
+		},
+		Port:  "3001",
+		Debug: log.TraceLevel,
+	}
+
+	assert.Equal(t, expectedConfig, Get())
+}
