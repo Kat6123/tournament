@@ -4,8 +4,7 @@ import "github.com/kat6123/tournament/log"
 
 var defaultConfig = Configuration{
 	DB: dbConfig{
-		URL:              "localhost:27017",
-		DB:               "tours",
+		URI:              "mongodb://localhost/tours",
 		TourCollection:   "tours",
 		PlayerCollection: "players",
 	},

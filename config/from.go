@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 
 	"github.com/kat6123/tournament/log"
 	"gopkg.in/yaml.v2"
@@ -16,11 +15,10 @@ func fromYAML(path string) (*Configuration, error) {
 
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		//  TODO you don't need "config from yaml" here
- 		return c, fmt.Errorf("config from yaml: read file %q: %v", path, err)
+		return c, fmt.Errorf("read file: %v", err)
 	}
 
-	err = yaml.Unmarshal([]byte(content), c)
+	err = yaml.Unmarshal(content, c)
 	if err != nil {
 		return c, fmt.Errorf("unmarshal: %v", err)
 	}
@@ -49,12 +47,13 @@ func fromEnv() (*Configuration, error) {
 }
 
 var (
-	dbURL      = flag.String("dburl", defaultConfig.DB.URL, "database url for connection")
-	db         = flag.String("db", defaultConfig.DB.DB, "database name")
+	dbURI      = flag.String("uri", defaultConfig.DB.URI, "database uri for connection")
 	tours      = flag.String("tours", defaultConfig.DB.TourCollection, "tour collection name")
 	players    = flag.String("players", defaultConfig.DB.PlayerCollection, "player collection name")
 	port       = flag.String("port", defaultConfig.Port, "port number")
-	debugLevel = log.Flag("debug", defaultConfig.Debug, "log level")
+	debugLevel = log.Flag("log-level", defaultConfig.Debug, "log level")
+
+	yamlPath = flag.String("yaml", "", "path to yaml file")
 )
 
 func fromFlags() *Configuration {

@@ -18,8 +18,7 @@ func TestMerge(t *testing.T) {
 			name: "merge with empty config",
 			c1: Configuration{
 				DB: dbConfig{
-					URL:              "localhost:27017",
-					DB:               "tours",
+					URI:              "mongodb://localhost/tours",
 					TourCollection:   "tours",
 					PlayerCollection: "players",
 				},
@@ -29,8 +28,7 @@ func TestMerge(t *testing.T) {
 			c2: Configuration{},
 			expectedC: Configuration{
 				DB: dbConfig{
-					URL:              "localhost:27017",
-					DB:               "tours",
+					URI:              "mongodb://localhost/tours",
 					TourCollection:   "tours",
 					PlayerCollection: "players",
 				},
@@ -42,8 +40,7 @@ func TestMerge(t *testing.T) {
 			name: "merge with empty config",
 			c1: Configuration{
 				DB: dbConfig{
-					URL:              "localhost:27017",
-					DB:               "tours",
+					URI:              "mongodb://localhost/tours",
 					TourCollection:   "tours",
 					PlayerCollection: "players",
 				},
@@ -52,8 +49,7 @@ func TestMerge(t *testing.T) {
 			},
 			c2: Configuration{
 				DB: dbConfig{
-					URL:              "another",
-					DB:               "another",
+					URI:              "another",
 					TourCollection:   "another",
 					PlayerCollection: "another",
 				},
@@ -62,8 +58,7 @@ func TestMerge(t *testing.T) {
 			},
 			expectedC: Configuration{
 				DB: dbConfig{
-					URL:              "another",
-					DB:               "another",
+					URI:              "another",
 					TourCollection:   "another",
 					PlayerCollection: "another",
 				},

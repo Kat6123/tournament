@@ -18,8 +18,7 @@ func main() {
 	tourlog.SetLevel(conf.Debug)
 
 	// TODO MySQL?
-	pc, tc, err := db.New(conf.DB.URL, conf.DB.DB,
-		conf.DB.TourCollection, conf.DB.PlayerCollection)
+	pc, tc, err := db.New(conf.DB.URI, conf.DB.TourCollection, conf.DB.PlayerCollection)
 	if err != nil {
 		log.Fatalf("dial with db has failed: %v", err)
 	}

@@ -9,12 +9,8 @@ import (
 func merge(c1, c2 *Configuration) Configuration {
 	c := *c1
 
-	if c2.DB.URL != "" {
-		c.DB.URL = c2.DB.URL
-	}
-
-	if c2.DB.DB != "" {
-		c.DB.DB = c2.DB.DB
+	if c2.DB.URI != "" {
+		c.DB.URI = c2.DB.URI
 	}
 
 	if c2.DB.TourCollection != "" {
