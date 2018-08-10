@@ -14,20 +14,15 @@ var defaultConfig = Configuration{
 
 type (
 	dbConfig struct {
-		URL              string `yaml:"url"`
-		DB               string `yaml:"db"`
-		TourCollection   string `yaml:"tour collection"`
-		PlayerCollection string `yaml:"player collection"`
+		URI              string `yaml:"uri"`
+		TourCollection   string `yaml:"tour_collection"`
+		PlayerCollection string `yaml:"player_collection"`
 	}
 
+	// Configuration type describes configuration for project.
 	Configuration struct {
 		DB    dbConfig
-		Port  string    `yaml:"port"`
-		Debug log.Level `yaml:"level"`
+		Port  string    `yaml:"app_port"`
+		Debug log.Level `yaml:"log_level"`
 	}
 )
-
-// Not obvious???
-func Default() Configuration {
-	return defaultConfig
-}

@@ -29,13 +29,12 @@ func fromYAML(path string) (*Configuration, error) {
 func fromEnv() (*Configuration, error) {
 	c := new(Configuration)
 
-	c.DB.URL = os.Getenv("DBURL") // TODO bad name
-	c.DB.DB = os.Getenv("DB")
+	c.DB.URI = os.Getenv("DB_URI")
 	c.DB.TourCollection = os.Getenv("TOURS")
 	c.DB.PlayerCollection = os.Getenv("PLAYERS")
 	c.Port = os.Getenv("PORT")
 
-	d, ok := os.LookupEnv("DEBUG")
+	d, ok := os.LookupEnv("LOG_LEVEL")
 	if ok {
 		err := c.Debug.Set(d)
 		if err != nil {
